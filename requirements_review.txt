@@ -1,0 +1,20 @@
+# modelscope hub + datasets (from github.com/modelscope/modelscope requirements)
+torch
+transformers>=4.12.0,<=4.26.1
+filelock
+requests>=2.25
+setuptools
+tqdm>=4.64.0
+urllib3>=1.26
+addict
+attrs
+datasets>=3.0.0,<=3.6.0
+pyarrow
+einops
+oss2
+Pillow
+python-dateutil>=2.1
+scipy
+simplejson>=3.3.0
+sortedcontainers>=1.5.9
+modelscope

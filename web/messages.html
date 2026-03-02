@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>easyvideoweb</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/evw-lang.js"></script>
+    <style>
+      :root {
+        --boke-pink: #FB7299;
+        --boke-blue: #00AEEC;
+        --text-main: #18191C;
+        --text-gray: #9499A0;
+        --bg-gray: #F1F2F3;
+      }
+
+      body { background-color: #f6f7f8; }
+
+      .msg-page {
+        max-width: 1000px;
+        margin: 24px auto;
+        padding: 0 20px;
+        display: flex;
+        gap: 20px;
+        min-height: calc(100vh - 120px);
+      }
+
+      /* Left sidebar nav */
+      .msg-sidebar {
+        width: 180px;
+        flex-shrink: 0;
+      }
+
+      .msg-nav {
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }
+
+      .msg-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        font-size: 14px;
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+      }
+
+      .msg-nav-item:hover {
+        background: #f6f7f8;
+      }
+
+      .msg-nav-item.active {
+        background: #f0f9ff;
+        color: var(--boke-blue);
+        border-left-color: var(--boke-blue);
+        font-weight: 600;
+      }
+
+      .msg-nav-item svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        flex-shrink: 0;
+      }
+
+      /* Main content */
+      .msg-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .msg-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+
+      .msg-header h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .msg-header-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .msg-action-btn {
+        font-size: 13px;
+        cursor: pointer;
+        padding: 6px 14px;
+        border: 1px solid #e3e5e7;
+        border-radius: 4px;
+        background: #fff;
+        transition: all 0.2s;
+      }
+
+      .msg-action-btn:hover {
+        background: #f6f7f8;
+      }
+
+      .msg-action-btn.primary {
+        color: var(--boke-blue);
+        border-color: var(--boke-blue);
+      }
+
+      .msg-action-btn.primary:hover {
+        background: #f0f9ff;
+      }
+
+      .msg-action-btn.danger {
+        color: var(--boke-pink);
+        border-color: var(--boke-pink);
+      }
+
+      .msg-action-btn.danger:hover {
+        background: #fff5f7;
+      }
+
+      /* Message list */
+      .msg-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }
+
+      .msg-item {
+        display: flex;
+        gap: 14px;
+        padding: 16px 20px;
+        background: #fff;
+        transition: background 0.15s;
+        align-items: flex-start;
+        position: relative;
+      }
+
+      .msg-item:hover {
+        background: #f6f9fc;
+      }
+
+      .msg-item.unread {
+        background: #fafcff;
+      }
+
+      .msg-item.unread::before {
+        content: '';
+        display: block;
+        width: 6px;
+        height: 6px;
+        background: var(--boke-blue);
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 14px;
+        margin-left: -8px;
+      }
+
+      .msg-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #E3E5E7;
+        flex-shrink: 0;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .msg-body {
+        flex: 1;
+        min-width: 0;
+        cursor: pointer;
+      }
+
+      .msg-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
+
+      .msg-from {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .msg-time {
+        font-size: 12px;
+        color: var(--text-gray);
+        flex-shrink: 0;
+      }
+
+      .msg-action-text {
+        font-size: 13px;
+        color: var(--text-gray);
+        margin-bottom: 6px;
+      }
+
+      .msg-action-text .action-verb {
+        color: var(--boke-blue);
+      }
+
+      .msg-quote {
+        background: #f6f7f8;
+        border-left: 3px solid #e3e5e7;
+        padding: 8px 12px;
+        border-radius: 0 4px 4px 0;
+        font-size: 13px;
+        color: #666;
+        line-height: 1.5;
+        max-height: 60px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .msg-reply-content {
+        font-size: 14px;
+        color: var(--text-main);
+        line-height: 1.5;
+        margin-bottom: 6px;
+      }
+
+      .msg-target {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-top: 4px;
+      }
+
+      .msg-target svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+      }
+
+      .msg-target:hover {
+        color: var(--boke-blue);
+      }
+
+      .msg-delete-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s, background 0.2s;
+        color: #999;
+      }
+
+      .msg-item:hover .msg-delete-btn {
+        opacity: 1;
+      }
+
+      .msg-delete-btn:hover {
+        background: #fee2e2;
+        color: #ef4444;
+      }
+
+      .msg-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-gray);
+        font-size: 14px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }
+
+      .msg-empty svg {
+        width: 80px;
+        height: 80px;
+        fill: #E3E5E7;
+        margin-bottom: 16px;
+      }
+
+      /* Badge */
+      .msg-badge {
+        background: var(--boke-pink);
+        color: #fff;
+        font-size: 10px;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        margin-left: auto;
+      }
+
+      /* System notification in message list */
+      .msg-system-content {
+        font-size: 14px;
+        color: var(--text-main);
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+
+      .msg-system-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+
+      /* System notification avatar */
+      .msg-avatar.system-avatar {
+        background: linear-gradient(135deg, #00AEEC, #FB7299);
+        color: #fff;
+        font-size: 18px;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .msg-page { flex-direction: column; }
+        .msg-sidebar { width: 100%; }
+        .msg-nav { display: flex; overflow-x: auto; }
+        .msg-nav-item { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; padding: 12px 16px; }
+        .msg-nav-item.active { border-bottom-color: var(--boke-blue); border-left-color: transparent; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" v-cloak>
+      <div v-show="!langReady" class="app-loading"></div>
+      <div v-show="langReady">
+    <div class="app">
+      <header class="boke-header">
+        <div class="header-content">
+          <div class="header-left">
+            <a href="/" class="boke-logo">
+              <svg viewBox="0 0 200 50" height="30" width="140" fill="#FB7299">
+                <text x="0" y="35" font-family="Arial" font-weight="bold" font-size="28">EasyVideoWeb</text>
+              </svg>
+            </a>
+            <nav class="header-nav">
+              <a href="/">{{ t('common.header.videoHome') }}</a>
+              <a href="/posts.html">{{ t('common.header.postHome') }}</a>
+            </nav>
+          </div>
+          <div class="header-center">
+            <div class="search-box">
+              <input id="searchInput" type="text" :placeholder="t('common.header.searchPlaceholder')" />
+              <button id="searchBtn">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </button>
+            </div>
+          </div>
+          <div class="header-right">
+            <a href="/messages.html" class="msg-icon-link" id="msgIconLink" :title="t('common.header.messageCenter')">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#FB7299" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span class="header-msg-badge" id="headerMsgBadge"></span>
+            </a>
+            <div class="user-entry" id="userEntry">
+              <div class="avatar-placeholder"></div>
+            </div>
+            <button class="upload-btn" id="uploadBtn">{{ t('common.header.upload') }}</button>
+            <button class="upload-btn" id="postUploadBtn">{{ t('common.header.postUpload') }}</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="msg-page">
+        <div class="msg-sidebar">
+          <nav class="msg-nav">
+            <div class="msg-nav-item active" data-tab="all">
+              <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              {{ t('messages.navAll') }}
+            </div>
+            <div class="msg-nav-item" data-tab="reply">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              {{ t('messages.navReply') }}
+            </div>
+            <div class="msg-nav-item" data-tab="like">
+              <svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/></svg>
+              {{ t('messages.navLike') }}
+            </div>
+            <div class="msg-nav-item" data-tab="system">
+              <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+              {{ t('messages.navSystem') }}
+            </div>
+          </nav>
+        </div>
+
+        <div class="msg-content">
+          <div class="msg-header">
+            <h2 id="msgTitle">{{ t('messages.navAll') }}</h2>
+            <div class="msg-header-actions">
+              <button class="msg-action-btn danger" id="deleteAllBtn">{{ t('messages.deleteAll') }}</button>
+              <button class="msg-action-btn primary" id="markReadBtn">{{ t('messages.markRead') }}</button>
+            </div>
+          </div>
+          <div id="msgListContainer"></div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </div>
+    <style>[v-cloak]{display:none!important}.app-loading{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f7f8}.app-loading::after{content:'';width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#00AEEC;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+    (function(){const {createApp,ref,onMounted}=Vue;const lang=ref({});const langReady=ref(false);
+    function t(k){let v=lang.value;k.split('.').forEach(x=>{v=v!=null?v[x]:undefined});return v!=null?String(v):k;}
+    createApp({setup(){onMounted(async ()=>{if(window.evwLangPromise)await window.evwLangPromise;lang.value=window.evwLang||{};langReady.value=true;window.__t=t;if(lang.value.messages&&lang.value.messages.pageTitle)document.title='easyvideoweb - '+lang.value.messages.pageTitle;});return{t,langReady}}}).mount('#app');})();
+    </script>
+    <script>
+    const getToken = () => {
+      const v = localStorage.getItem("authToken");
+      if (!v || v === "null" || v === "undefined") return "";
+      return v;
+    };
+    const clearAuthState = () => {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
+    };
+    const redirectToLogin = () => {
+      window.location.href = "/?login=1&redirect=" + encodeURIComponent("/messages.html");
+    };
+
+    const authFetch = (url, options = {}) => {
+      const headers = options.headers || {};
+      const token = getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+      return fetch(url, { ...options, headers });
+    };
+
+    const guestAvatarSvg = `data:image/svg+xml;utf8,${encodeURIComponent(
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='32' fill='%23E3E5E7'/><circle cx='32' cy='24' r='10' fill='%239499A0'/><path d='M12 54c4-10 16-14 20-14s16 4 20 14' fill='%239499A0'/></svg>"
+    )}`;
+
+    // Header init
+    function initHeader() {
+      const token = getToken();
+      const avatarEl = document.querySelector("#userEntry .avatar-placeholder");
+      const userEntry = document.getElementById("userEntry");
+      const uploadBtn = document.getElementById("uploadBtn");
+      const postUploadBtn = document.getElementById("postUploadBtn");
+
+      if (!token) {
+        if (avatarEl) {
+          avatarEl.textContent = "";
+          avatarEl.style.background = "#E3E5E7";
+          avatarEl.style.backgroundImage = `url("${guestAvatarSvg}")`;
+          avatarEl.style.backgroundSize = "70%";
+          avatarEl.style.backgroundPosition = "center";
+          avatarEl.style.backgroundRepeat = "no-repeat";
+        }
+        if (userEntry) userEntry.onclick = () => { window.location.href = "/?login=1"; };
+        if (uploadBtn) uploadBtn.onclick = () => { window.location.href = "/?login=1"; };
+        if (postUploadBtn) postUploadBtn.onclick = () => { window.location.href = "/?login=1"; };
+        return;
+      }
+
+      if (userEntry) userEntry.onclick = () => { window.location.href = "/user.html"; };
+      if (uploadBtn) uploadBtn.onclick = () => { window.location.href = "/creator.html"; };
+      if (postUploadBtn) postUploadBtn.onclick = () => { window.location.href = "/post_create.html"; };
+
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const u = JSON.parse(userStr);
+          if (u && u.avatarUrl && avatarEl) {
+            avatarEl.textContent = "";
+            avatarEl.style.backgroundImage = `url(${u.avatarUrl})`;
+            avatarEl.style.backgroundSize = "cover";
+            avatarEl.style.backgroundPosition = "center";
+            avatarEl.style.backgroundColor = "transparent";
+          } else if (avatarEl) {
+            const n = (u && u.nickname) ? u.nickname[0].toUpperCase() : "U";
+            avatarEl.textContent = n;
+            avatarEl.style.background = "#00AEEC";
+            avatarEl.style.color = "#fff";
+            avatarEl.style.backgroundImage = "none";
+          }
+        } catch (e) {}
+      }
+    }
+
+    // Search
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+    function doSearch() {
+      const q = searchInput.value.trim();
+      if (q) window.location.href = `/?q=${encodeURIComponent(q)}`;
+    }
+    if (searchBtn) searchBtn.onclick = doSearch;
+    if (searchInput) searchInput.addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+
+    // State
+    let allMessages = [];
+    let currentTab = "all";
+    let messageReadAt = null;
+
+    const tabKeys = { all: "messages.navAll", reply: "messages.navReply", like: "messages.navLike", system: "messages.navSystem" };
+
+    const replyTypes = ["video_reply", "post_reply", "video_comment", "post_comment"];
+    const likeTypes = ["video_comment_like", "video_like", "post_comment_like", "post_like"];
+    const systemTypes = ["system", "video_review", "post_review"];
+
+    function filterMessages(tab) {
+      if (tab === "reply") return allMessages.filter(m => replyTypes.includes(m.type));
+      if (tab === "like") return allMessages.filter(m => likeTypes.includes(m.type));
+      if (tab === "system") return allMessages.filter(m => systemTypes.includes(m.type));
+      return allMessages;
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return "";
+      const d = new Date(isoStr);
+      const now = new Date();
+      const diff = (now - d) / 1000;
+      if (diff < 60) return "刚刚";
+      if (diff < 3600) return Math.floor(diff / 60) + "分钟前";
+      if (diff < 86400) return Math.floor(diff / 3600) + "小时前";
+      if (diff < 86400 * 30) return Math.floor(diff / 86400) + "天前";
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function getActionText(m) {
+      switch (m.type) {
+        case "video_reply": return '回复了你的评论';
+        case "post_reply": return '回复了你的评论';
+        case "video_comment": return '评论了你的视频';
+        case "post_comment": return '评论了你的帖子';
+        case "video_comment_like": return '赞了你的评论';
+        case "post_comment_like": return '赞了你的评论';
+        case "video_like": return '赞了你的视频';
+        case "post_like": return '赞了你的帖子';
+        case "system": return '';
+        case "video_review": return '';
+        case "post_review": return '';
+        default: return '';
+      }
+    }
+
+    function getTargetUrl(m) {
+      if (m.videoId) {
+        let url = `/player.html?id=${encodeURIComponent(m.videoId)}`;
+        if (m.commentId) url += `#comment-${m.commentId}`;
+        return url;
+      }
+      if (m.postId) {
+        let url = `/post_detail.html?id=${m.postId}`;
+        if (m.commentId) url += `#comment-${m.commentId}`;
+        return url;
+      }
+      return "";
+    }
+
+    function isUnread(m) {
+      return m._unread === true;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Delete single message
+    async function deleteMessage(msgKey, el) {
+      try {
+        const res = await authFetch("/api/messages/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ msgKey })
+        });
+        if (res.ok) {
+          allMessages = allMessages.filter(m => m.msgKey !== msgKey);
+          renderMessages();
+        }
+      } catch (e) {
+        console.error("Delete message failed:", e);
+      }
+    }
+
+    // Delete all messages
+    async function deleteAllMessages() {
+      if (!confirm("确认删除所有消息？此操作不可撤销。")) return;
+      try {
+        const res = await authFetch("/api/messages/delete-all", { method: "POST" });
+        if (res.ok) {
+          allMessages = [];
+          renderMessages();
+          const badge = document.getElementById("headerMsgBadge");
+          if (badge) badge.style.display = "none";
+        }
+      } catch (e) {
+        console.error("Delete all messages failed:", e);
+      }
+    }
+
+    function renderMessages() {
+      const container = document.getElementById("msgListContainer");
+      const titleEl = document.getElementById("msgTitle");
+      titleEl.textContent = (window.__t && window.__t(tabKeys[currentTab])) || "";
+      const list = filterMessages(currentTab);
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="msg-empty">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            <div>${(window.__t && window.__t("messages.empty")) || "暂无消息"}</div>
+          </div>
+        `;
+        return;
+      }
+
+      const html = list.map(m => {
+        const unread = isUnread(m) ? " unread" : "";
+        const targetUrl = getTargetUrl(m);
+        const actionText = getActionText(m);
+
+        // Video review notification rendering
+        if (m.type === "video_review") {
+          const isRejected = m.content && (m.content.includes('未通过') || m.content.includes('不通过'));
+          const isApproved = !isRejected;
+          const iconColor = isApproved ? '#38a169' : '#e53e3e';
+          const iconSvg = isApproved
+            ? '<svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'
+            : '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
+          const targetUrl = m.videoId ? `/player.html?id=${encodeURIComponent(m.videoId)}` : '';
+          return `
+            <div class="msg-item${unread}" data-url="${targetUrl}" data-msg-key="${escapeHtml(m.msgKey)}">
+              <div class="msg-avatar" style="background:${iconColor};color:#fff;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                ${iconSvg}
+              </div>
+              <div class="msg-body">
+                <div class="msg-top-row">
+                  <span class="msg-from">视频审核</span>
+                  <span class="msg-time">${formatTime(m.createdAt)}</span>
+                </div>
+                ${m.targetTitle ? `<div class="msg-system-title">${escapeHtml(m.targetTitle)}</div>` : ''}
+                <div class="msg-system-content" style="color:${iconColor};font-weight:600;">${escapeHtml(m.content)}</div>
+              </div>
+              <button class="msg-delete-btn" data-msg-key="${escapeHtml(m.msgKey)}" title="删除">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          `;
+        }
+        // Post review notification rendering
+        if (m.type === "post_review") {
+          const isRejected = m.content && (m.content.includes('未通过') || m.content.includes('不通过'));
+          const isApproved = !isRejected;
+          const iconColor = isApproved ? '#38a169' : '#e53e3e';
+          const iconSvg = isApproved
+            ? '<svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'
+            : '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>';
+          const targetUrl = m.postId ? `/post_detail.html?id=${m.postId}` : '';
+          return `
+            <div class="msg-item${unread}" data-url="${targetUrl}" data-msg-key="${escapeHtml(m.msgKey)}">
+              <div class="msg-avatar" style="background:${iconColor};color:#fff;border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                ${iconSvg}
+              </div>
+              <div class="msg-body">
+                <div class="msg-top-row">
+                  <span class="msg-from">帖子审核</span>
+                  <span class="msg-time">${formatTime(m.createdAt)}</span>
+                </div>
+                ${m.targetTitle ? `<div class="msg-system-title">${escapeHtml(m.targetTitle)}</div>` : ''}
+                <div class="msg-system-content" style="color:${iconColor};font-weight:600;">${escapeHtml(m.content)}</div>
+              </div>
+              <button class="msg-delete-btn" data-msg-key="${escapeHtml(m.msgKey)}" title="删除">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          `;
+        }
+
+        // System notification rendering
+        if (m.type === "system") {
+          return `
+            <div class="msg-item${unread}" data-msg-key="${escapeHtml(m.msgKey)}">
+              <div class="msg-avatar system-avatar">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#fff"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+              </div>
+              <div class="msg-body">
+                <div class="msg-top-row">
+                  <span class="msg-from">系统通知</span>
+                  <span class="msg-time">${formatTime(m.createdAt)}</span>
+                </div>
+                <div class="msg-system-title">${escapeHtml(m.targetTitle)}</div>
+                <div class="msg-system-content">${escapeHtml(m.content)}</div>
+              </div>
+              <button class="msg-delete-btn" data-msg-key="${escapeHtml(m.msgKey)}" title="删除">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          `;
+        }
+
+        // Normal message rendering
+        const avatarStyle = m.fromAvatar
+          ? `background-image:url('${m.fromAvatar}');background-color:transparent;`
+          : "";
+        const avatarText = m.fromAvatar ? "" : (m.fromNickname || "U").charAt(0).toUpperCase();
+        const targetIcon = m.videoId
+          ? '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+          : '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/></svg>';
+
+        let contentHtml = "";
+
+        if (m.type === "video_reply" || m.type === "post_reply") {
+          contentHtml = `
+            <div class="msg-reply-content">${escapeHtml(m.content)}</div>
+            ${m.myContent ? `<div class="msg-quote">${escapeHtml(m.myContent)}</div>` : ""}
+          `;
+        } else if (m.type === "video_comment" || m.type === "post_comment") {
+          contentHtml = `
+            <div class="msg-reply-content">${escapeHtml(m.content)}</div>
+          `;
+        } else if (m.type === "video_comment_like" || m.type === "post_comment_like") {
+          contentHtml = m.myContent ? `<div class="msg-quote">${escapeHtml(m.myContent)}</div>` : "";
+        }
+
+        return `
+          <div class="msg-item${unread}" data-url="${targetUrl}" data-msg-key="${escapeHtml(m.msgKey)}">
+            <div class="msg-avatar" style="${avatarStyle}">${avatarText}</div>
+            <div class="msg-body">
+              <div class="msg-top-row">
+                <span class="msg-from">${escapeHtml(m.fromNickname || m.fromEmail || '匿名用户')}</span>
+                <span class="msg-time">${formatTime(m.createdAt)}</span>
+              </div>
+              <div class="msg-action-text"><span class="action-verb">${actionText}</span></div>
+              ${contentHtml}
+              ${m.targetTitle ? `<div class="msg-target">${targetIcon} ${escapeHtml(m.targetTitle)}</div>` : ""}
+            </div>
+            <button class="msg-delete-btn" data-msg-key="${escapeHtml(m.msgKey)}" title="删除">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      container.innerHTML = `<div class="msg-list">${html}</div>`;
+
+      // Bind click on message body (navigate)
+      container.querySelectorAll(".msg-item .msg-body").forEach(body => {
+        body.addEventListener("click", () => {
+          const url = body.closest(".msg-item").dataset.url;
+          if (url && url !== "") window.location.href = url;
+        });
+      });
+
+      // Bind click on delete button
+      container.querySelectorAll(".msg-delete-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const msgKey = btn.dataset.msgKey;
+          if (msgKey) deleteMessage(msgKey, btn.closest(".msg-item"));
+        });
+      });
+    }
+
+    // Tab switching
+    document.querySelectorAll(".msg-nav-item").forEach(item => {
+      item.addEventListener("click", () => {
+        document.querySelectorAll(".msg-nav-item").forEach(n => n.classList.remove("active"));
+        item.classList.add("active");
+        currentTab = item.dataset.tab;
+        renderMessages();
+      });
+    });
+
+    // Mark all read
+    document.getElementById("markReadBtn").addEventListener("click", async () => {
+      try {
+        const res = await authFetch("/api/messages/read", { method: "POST" });
+        if (res.ok) {
+          allMessages.forEach(m => m._unread = false);
+          renderMessages();
+          const badge = document.getElementById("headerMsgBadge");
+          if (badge) badge.style.display = "none";
+        }
+      } catch (e) {}
+    });
+
+    // Delete all
+    document.getElementById("deleteAllBtn").addEventListener("click", deleteAllMessages);
+
+    // Load messages
+    async function loadMessages() {
+      const token = getToken();
+      if (!token) {
+        clearAuthState();
+        redirectToLogin();
+        return;
+      }
+
+      try {
+        const [msgRes, countRes] = await Promise.all([
+          authFetch("/api/messages"),
+          authFetch("/api/messages/unread-count")
+        ]);
+
+        if (msgRes.ok) {
+          allMessages = await msgRes.json();
+        } else if (msgRes.status === 401 || msgRes.status === 403) {
+          clearAuthState();
+          redirectToLogin();
+          return;
+        }
+
+        let unreadCount = 0;
+        if (countRes.ok) {
+          const d = await countRes.json();
+          unreadCount = d.count || 0;
+          const badge = document.getElementById("headerMsgBadge");
+          if (badge) {
+            if (unreadCount > 0) {
+              badge.textContent = unreadCount > 99 ? "99+" : unreadCount;
+              badge.style.display = "flex";
+            } else {
+              badge.style.display = "none";
+            }
+          }
+        } else if (countRes.status === 401 || countRes.status === 403) {
+          clearAuthState();
+          redirectToLogin();
+          return;
+        }
+
+        // Mark the first N messages as unread based on count
+        if (unreadCount > 0 && allMessages.length > 0) {
+          let counted = 0;
+          for (let i = 0; i < allMessages.length; i++) {
+            if (counted < unreadCount) {
+              allMessages[i]._unread = true;
+              counted++;
+            } else {
+              allMessages[i]._unread = false;
+            }
+          }
+        }
+
+        renderMessages();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    initHeader();
+    loadMessages();
+    </script>
+  </body>
+</html>

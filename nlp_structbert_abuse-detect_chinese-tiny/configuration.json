@@ -1,0 +1,42 @@
+{
+  "framework": "pytorch",
+  "task": "text-classification",
+  "pipeline": {
+    "type": "sentiment-classification"
+  },
+  "preprocessor": {
+    "type": "sen-cls-tokenizer",
+    "first_sequence": "sentence1"
+  },
+  "model": {
+    "type": "text-classification",
+    "backbone": {
+      "type": "structbert",
+      "prefix": "bert",
+      "attention_probs_dropout_prob": 0.1,
+      "classifier_dropout": null,
+      "directionality": "bidi",
+      "hidden_act": "gelu",
+      "hidden_dropout_prob": 0.1,
+      "hidden_size": 256,
+      "initializer_range": 0.02,
+      "intermediate_size": 1024,
+      "layer_norm_eps": 1E-12,
+      "max_position_embeddings": 512,
+      "model_type": "bert",
+      "num_attention_heads": 4,
+      "num_hidden_layers": 4,
+      "pad_token_id": 0,
+      "position_embedding_type": "absolute",
+      "problem_type": "single_label_classification",
+      "torch_dtype": "float32",
+      "type_vocab_size": 2,
+      "vocab_size": 21128
+    },
+    "head": {
+      "type": "text-classification",
+      "hidden_dropout_prob": 0.1,
+      "hidden_size": 256
+    }
+  }
+}

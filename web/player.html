@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频播放 - easyvideoweb</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/evw-lang.js"></script>
+  <style>
+    :root {
+      --boke-pink: #FB7299;
+      --boke-blue: #00AEEC;
+      --text-main: #18191C;
+      --text-gray: #9499A0;
+      --bg-gray: #F1F2F3;
+      --card-bg: #fff;
+    }
+
+    body {
+      background-color: #fff;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text-main);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--boke-pink);
+      margin-right: 40px;
+      cursor: pointer;
+    }
+
+    .back-link {
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+    .back-link:hover {
+      color: var(--boke-blue);
+    }
+
+    /* Layout */
+    .main-container {
+      max-width: 1400px; /* Wider for player page */
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      gap: 30px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .left-column {
+      flex: 1;
+      min-width: 0; /* Prevent flex overflow */
+    }
+
+    .right-column {
+      width: 350px;
+      flex-shrink: 0;
+    }
+
+    /* Video Player */
+    .video-player-wrap {
+      width: 100%;
+      background: #000;
+      position: relative;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio */
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    #playerVideo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .player-fallback {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      background: #333;
+      z-index: 1;
+    }
+
+    /* Video Info */
+    .video-info {
+      margin-top: 20px;
+      border-bottom: 1px solid #E3E5E7;
+      padding-bottom: 20px;
+    }
+
+    .video-title {
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 28px;
+      margin-bottom: 10px;
+      color: var(--text-main);
+    }
+
+    .video-data {
+      font-size: 13px;
+      color: var(--text-gray);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .video-data-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .video-data-item svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #E3E5E7;
+      margin-bottom: 16px;
+    }
+
+    .tool-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0;
+      background: none;
+      border: none;
+      color: #61666D;
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.2s;
+      margin-right: 20px;
+    }
+
+    .tool-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .tool-btn:hover {
+      color: var(--boke-blue);
+    }
+
+    .tool-btn.active {
+      color: var(--boke-blue); /* Or pink for favorites */
+    }
+    
+    .tool-btn.active-pink {
+        color: var(--boke-pink);
+    }
+
+    .video-desc {
+      font-size: 13px;
+      color: #18191C;
+      line-height: 22px;
+      white-space: pre-wrap;
+      margin-top: 16px;
+    }
+    
+    .video-tags {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .tag-item {
+        background: #F1F2F3;
+        color: #61666D;
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .tag-item:hover {
+        color: var(--boke-blue);
+    }
+
+    /* Uploader Card */
+    .uploader-card {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .uploader-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #eee;
+      margin-right: 12px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    
+    .uploader-info {
+        flex: 1;
+    }
+
+    .uploader-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--boke-pink);
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .uploader-desc {
+      font-size: 12px;
+      color: var(--text-gray);
+    }
+
+    .btn-follow {
+      width: 150px;
+      height: 34px;
+      background: var(--boke-blue);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.2s;
+    }
+    .btn-follow:hover {
+      background: #00A1D6;
+    }
+
+    /* Recommendations */
+    .rec-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .rec-item {
+      display: flex;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .rec-thumb {
+      width: 140px;
+      height: 80px;
+      background: #F1F2F3;
+      border-radius: 4px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .rec-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 2px 0;
+    }
+
+    .rec-title {
+      font-size: 14px;
+      line-height: 18px;
+      color: var(--text-main);
+      display: block;
+      max-height: 36px;
+      overflow: hidden;
+      transition: color 0.2s;
+    }
+    .rec-item:hover .rec-title {
+        color: var(--boke-blue);
+    }
+
+    .rec-meta {
+      font-size: 12px;
+      color: var(--text-gray);
+    }
+
+    /* Comments */
+    .comment-section {
+      margin-top: 30px;
+    }
+    
+    .comment-header {
+        font-size: 18px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+    }
+
+    .comment-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .comment-count {
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+    
+    .comment-sort {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text-gray);
+    }
+    
+    .sort-btn {
+        border: 1px solid #E3E5E7;
+        background: #fff;
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        color: #6d757a;
+        cursor: pointer;
+    }
+    
+    .sort-btn.active {
+        color: var(--boke-blue);
+        border-color: var(--boke-blue);
+        background: #f0f9ff;
+    }
+
+    .comment-input-wrap {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+    
+    .my-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #E3E5E7;
+        background-size: cover;
+        background-position: center;
+    }
+    
+    .input-box-container {
+        flex: 1;
+    }
+
+    .comment-input {
+      width: 100%;
+      height: 64px;
+      padding: 10px;
+      border: 1px solid #E3E5E7;
+      border-radius: 6px;
+      background: #F1F2F3;
+      resize: none;
+      font-family: inherit;
+      font-size: 14px;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    .comment-input:focus {
+        background: #fff;
+        border-color: #C9CCD0;
+        outline: none;
+    }
+
+    .reply-hint {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-bottom: 6px;
+    }
+
+    .reply-cancel {
+        border: none;
+        background: transparent;
+        color: var(--boke-blue);
+        cursor: pointer;
+        padding: 0;
+        font-size: 12px;
+    }
+
+    .comment-submit-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .comment-btn {
+      width: 80px;
+      height: 32px;
+      background: var(--boke-blue); /* boke blue */
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .comment-btn:disabled {
+        background: #E3E5E7;
+        color: #9499A0;
+        cursor: not-allowed;
+    }
+
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-height: 420px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    
+    .comment-item {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .c-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #E3E5E7;
+        background-size: cover;
+        background-position: center;
+        cursor: pointer;
+    }
+
+    .avatar-link {
+        cursor: pointer;
+    }
+
+    .user-link {
+        cursor: pointer;
+    }
+    
+    .c-content-wrap {
+        flex: 1;
+        border-bottom: 1px solid #E3E5E7;
+        padding-bottom: 16px;
+    }
+    
+    .c-user {
+        font-size: 13px;
+        color: #61666D;
+        font-weight: 500;
+        margin-bottom: 4px;
+        cursor: pointer;
+    }
+    
+    .c-text {
+        font-size: 15px;
+        line-height: 24px;
+        color: #18191C;
+        margin-bottom: 8px;
+    }
+    
+    .c-info {
+        font-size: 12px;
+        color: #9499A0;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .c-action {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .c-action:hover {
+        color: var(--boke-blue);
+    }
+    .c-action.active {
+        color: var(--boke-blue);
+    }
+
+    .comment-delete {
+        color: #FF6699;
+    }
+
+    .reply-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .reply-item {
+        display: flex;
+        gap: 10px;
+    }
+
+    .reply-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #E3E5E7;
+        background-size: cover;
+        background-position: center;
+        flex: 0 0 32px;
+    }
+
+    .reply-body {
+        flex: 1;
+    }
+
+    .reply-user {
+        font-size: 12px;
+        color: #61666D;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .reply-to {
+        color: var(--text-gray);
+    }
+
+    .reply-text {
+        font-size: 13px;
+        line-height: 20px;
+        color: #18191C;
+        margin: 4px 0;
+        word-break: break-word;
+    }
+
+    .reply-info {
+        font-size: 12px;
+        color: #9499A0;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .reply-more {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--boke-blue);
+        cursor: pointer;
+    }
+
+    .delete-btn {
+        color: #FF6699; /* Pink for delete */
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    /* Utility */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <div v-show="!langReady" class="app-loading"></div>
+    <div v-show="langReady">
+  <div class="app">
+    <header class="boke-header">
+      <div class="header-content">
+        <div class="header-left">
+          <a href="/" class="boke-logo">
+            <svg viewBox="0 0 200 50" height="30" width="140" fill="#FB7299">
+              <text x="0" y="35" font-family="Arial" font-weight="bold" font-size="28">EasyVideoWeb</text>
+            </svg>
+          </a>
+          <nav class="header-nav">
+            <a href="/" class="active">{{ t('common.header.videoHome') }}</a>
+            <a href="/posts.html">{{ t('common.header.postHome') }}</a>
+          </nav>
+        </div>
+        <div class="header-center">
+          <div class="search-box">
+            <input id="searchInput" type="text" :placeholder="t('common.header.searchPlaceholder')" />
+            <button id="searchBtn">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="header-right">
+          <a href="/messages.html" class="msg-icon-link" id="msgIconLink" :title="t('common.header.messageCenter')">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#FB7299" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span class="header-msg-badge" id="headerMsgBadge"></span>
+          </a>
+          <div class="user-entry" id="userEntry">
+            <div class="avatar-placeholder"></div>
+          </div>
+          <button class="upload-btn" id="uploadBtn">{{ t('common.header.upload') }}</button>
+          <button class="upload-btn" id="postUploadBtn">{{ t('common.header.postUpload') }}</button>
+        </div>
+      </div>
+      <div class="header-banner-bg"></div>
+    </header>
+
+    <div class="main-container">
+      <!-- Left Column -->
+      <div class="left-column">
+        
+        <!-- Video Title Block -->
+        <div class="video-info-header" style="margin-bottom: 16px;">
+            <h1 id="playerTitle" class="video-title">{{ t('player.loadingTitle') }}</h1>
+            <div class="video-data">
+                <div class="video-data-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path></svg>
+                    <span id="viewCount">-</span>{{ t('player.play') }}
+                </div>
+                <div class="video-data-item">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"></path></svg>
+                    <span id="publishDate">-</span>
+                </div>
+                <span id="deleteBtn" class="delete-btn" style="display:none; margin-left: 20px;">{{ t('player.deleteVideo') }}</span>
+                <span id="reReviewBtn" class="delete-btn" style="display:none; margin-left: 10px; background:transparent; border:none; color:#00aeec; padding:0;">{{ t('player.reReview') }}</span>
+                <span id="reportVideoBtn" style="margin-left: 10px; color:#FB7299; font-size:13px; cursor:pointer;">{{ t('player.report') }}</span>
+            </div>
+        </div>
+
+        <!-- Player -->
+        <div class="video-player-wrap">
+          <video id="playerVideo" controls></video>
+          <div id="playerFallback" class="player-fallback">{{ t('player.loadingVideo') }}</div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar" style="margin-top: 16px;">
+            <button class="tool-btn" id="btnLike">
+                <svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"></path></svg>
+                <span id="likeCount">{{ t('player.like') }}</span>
+            </button>
+            <button class="tool-btn" id="btnFav">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                <span id="favText">{{ t('player.fav') }}</span>
+            </button>
+        </div>
+
+        <!-- Description -->
+        <div class="video-info">
+             <div id="playerDesc" class="video-desc">-</div>
+             <div id="videoTags" class="video-tags"></div>
+        </div>
+
+        <!-- Comments -->
+        <div class="comment-section">
+          <div class="comment-header">
+            <div class="comment-title">
+              <span>{{ t('player.commentTitle') }}</span>
+              <span class="comment-count" id="commentCountHeader">(0)</span>
+            </div>
+            <div class="comment-sort">
+              <button class="sort-btn active" id="commentSortHot">{{ t('player.sortHot') }}</button>
+              <button class="sort-btn" id="commentSortNew">{{ t('player.sortNew') }}</button>
+            </div>
+          </div>
+          
+          <div class="comment-input-wrap">
+             <div class="my-avatar" id="myCommentAvatar"></div>
+             <div class="input-box-container">
+                 <div id="replyHint" class="reply-hint hidden">
+                     <span id="replyText"></span>
+                     <button id="replyCancel" class="reply-cancel" type="button">{{ t('player.cancelReply') }}</button>
+                 </div>
+                 <textarea id="commentInput" class="comment-input" :placeholder="t('player.commentPlaceholder')"></textarea>
+                 <div class="comment-submit-row">
+                     <button id="commentSubmit" class="comment-btn">{{ t('player.submit') }}</button>
+                 </div>
+             </div>
+          </div>
+          
+          <div id="commentMsg" class="msg-box hidden" style="margin-bottom:10px;"></div>
+
+          <div id="commentList" class="comment-list">
+              <!-- Comments injected here -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column -->
+      <div class="right-column">
+         <!-- Uploader -->
+         <div class="uploader-card">
+             <div class="uploader-avatar" id="uploaderAvatar"></div>
+             <div class="uploader-info">
+                 <div class="uploader-name" id="uploaderName">{{ t('player.uploader') }}</div>
+                 <div class="uploader-desc" id="uploaderDesc">{{ t('player.uploaderDesc') }}</div>
+             </div>
+         </div>
+
+         <!-- Recommendations -->
+         <div class="rec-list">
+             <h3 style="font-size:16px; margin:0 0 10px 0;">{{ t('player.authorMoreVideos') }}</h3>
+             <div id="recListContainer">
+                 <!-- Recommendations injected here -->
+             </div>
+         </div>
+      </div>
+
+    </div>
+  </div>
+    </div>
+  </div>
+  <style>[v-cloak]{display:none!important}.app-loading{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fff}.app-loading::after{content:'';width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#00AEEC;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}</style>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script>
+  (function(){const {createApp,ref,onMounted}=Vue;const lang=ref({});const langReady=ref(false);
+  function t(k){let v=lang.value;k.split('.').forEach(x=>{v=v!=null?v[x]:undefined});return v!=null?String(v):k;}
+  createApp({setup(){onMounted(async ()=>{if(window.evwLangPromise)await window.evwLangPromise;lang.value=window.evwLang||{};langReady.value=true;if(lang.value.player&&lang.value.player.pageTitle)document.title=lang.value.player.pageTitle;});return{t,langReady}}}).mount('#app');})();
+  </script>
+  <script src="/player.js"></script>
+</body>
+</html>

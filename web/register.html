@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>easyvideoweb</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/evw-lang.js"></script>
+  <style>
+    .auth-container {
+      max-width: 360px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      border: 1px solid #e5e9f2;
+    }
+    .auth-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-align: center;
+      color: #1f2a37;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: #4a5568;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .form-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d7ddea;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: #2b6cff;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+    .code-input {
+      max-width: 140px;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background: #2b6cff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover:not(:disabled) {
+      background: #1a5cff;
+    }
+    .btn:disabled {
+      background: #9fb5ff;
+      cursor: not-allowed;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #2b6cff;
+      color: #2b6cff;
+    }
+    .btn-outline:hover:not(:disabled) {
+      background: #f0f5ff;
+    }
+    .send-btn {
+      width: 96px;
+      padding: 8px 0;
+      font-size: 12px;
+    }
+    .error-msg {
+      color: #e53e3e;
+      font-size: 14px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .success-msg {
+      color: #38a169;
+      font-size: 14px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .switch-link {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .switch-link a {
+      color: #2b6cff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <div v-show="!langReady" class="app-loading"></div>
+    <div v-show="langReady">
+  <div class="app">
+    <header class="header">
+      <div class="logo">EasyVideoWeb</div>
+      <div class="search">
+        <a class="back-link" href="/">{{ t('register_page.backHome') }}</a>
+      </div>
+    </header>
+    <main class="main">
+      <div class="auth-container">
+        <h1 class="auth-title">{{ t('common.register.title') }}</h1>
+        <div class="form-group">
+          <label class="form-label">{{ t('common.login.emailLabel') }}</label>
+          <input type="email" id="email" class="form-input" :placeholder="t('common.login.emailPlaceholder')">
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('common.login.codeLabel') }}</label>
+          <div class="input-group">
+            <input type="text" id="code" class="form-input code-input" :placeholder="t('common.login.codePlaceholder')">
+            <button id="sendBtn" class="btn btn-outline send-btn">{{ t('register_page.regCodeBtn') }}</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ t('common.login.passwordLabel') }}</label>
+          <input type="password" id="password" class="form-input" :placeholder="t('register_page.passwordPlaceholder')">
+        </div>
+        <button id="registerBtn" class="btn">{{ t('common.register.registerAndLogin') }}</button>
+        <div class="switch-link">{{ t('common.login.hasAccount') }}<a href="/?login=1">{{ t('common.login.goLogin') }}</a></div>
+        <div id="msg" class="error-msg"></div>
+      </div>
+    </main>
+  </div>
+    </div>
+  </div>
+  <style>[v-cloak]{display:none!important}.app-loading{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4f5f7}.app-loading::after{content:'';width:32px;height:32px;border:3px solid #e0e0e0;border-top-color:#00AEEC;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}</style>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script>
+  (function(){const {createApp,ref,onMounted}=Vue;const lang=ref({});const langReady=ref(false);
+  function t(k){let v=lang.value;k.split('.').forEach(x=>{v=v!=null?v[x]:undefined});return v!=null?String(v):k;}
+  createApp({setup(){onMounted(async ()=>{if(window.evwLangPromise)await window.evwLangPromise;lang.value=window.evwLang||{};langReady.value=true;if(lang.value.register_page&&lang.value.register_page.pageTitle)document.title='easyvideoweb - '+lang.value.register_page.pageTitle;});return{t,langReady}}}).mount('#app');})();
+  </script>
+  <script>
+    const emailInput = document.getElementById('email');
+    const codeInput = document.getElementById('code');
+    const passwordInput = document.getElementById('password');
+    const sendBtn = document.getElementById('sendBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const msgDiv = document.getElementById('msg');
+
+    sendBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        msgDiv.textContent = '请输入邮箱';
+        msgDiv.className = 'error-msg';
+        return;
+      }
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        msgDiv.textContent = '请输入有效的邮箱地址';
+        msgDiv.className = 'error-msg';
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = '发送中...';
+      msgDiv.textContent = '';
+      
+      try {
+        const res = await fetch('/api/send-code', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email})
+        });
+        
+        if (!res.ok) {
+           const text = await res.text();
+           throw new Error(text || '发送失败');
+        }
+        
+        msgDiv.textContent = '验证码已发送，请查收邮件';
+        msgDiv.className = 'success-msg';
+        
+        let count = 60;
+        const timer = setInterval(() => {
+          count--;
+          sendBtn.textContent = `${count}s`;
+          if (count <= 0) {
+            clearInterval(timer);
+            sendBtn.disabled = false;
+            sendBtn.textContent = '获取验证码';
+          }
+        }, 1000);
+      } catch (err) {
+        msgDiv.textContent = err.message;
+        msgDiv.className = 'error-msg';
+        sendBtn.disabled = false;
+        sendBtn.textContent = '获取验证码';
+      }
+    });
+
+    registerBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const code = codeInput.value.trim();
+      const password = passwordInput.value.trim();
+      if (!email || !code || !password) {
+        msgDiv.textContent = '请填写完整信息';
+        msgDiv.className = 'error-msg';
+        return;
+      }
+      if (!/^\d{6}$/.test(password)) {
+        msgDiv.textContent = '密码必须为6位数字';
+        msgDiv.className = 'error-msg';
+        return;
+      }
+      
+      registerBtn.disabled = true;
+      registerBtn.textContent = '注册中...';
+      msgDiv.textContent = '';
+
+      try {
+        const res = await fetch('/api/verify-code', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, code, password})
+        });
+        
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || '注册失败');
+        }
+
+        const data = await res.json();
+        if (!data.token) {
+          throw new Error('注册失败');
+        }
+        localStorage.setItem('authToken', data.token);
+        msgDiv.textContent = '注册成功！即将跳转...';
+        msgDiv.className = 'success-msg';
+        setTimeout(() => {
+          window.location.href = '/user.html';
+        }, 500);
+      } catch (err) {
+        msgDiv.textContent = err.message;
+        msgDiv.className = 'error-msg';
+        registerBtn.disabled = false;
+        registerBtn.textContent = '注册并登录';
+      }
+    });
+  </script>
+</body>
+</html>

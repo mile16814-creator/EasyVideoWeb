@@ -1,0 +1,18 @@
+{
+  "publish_quota": {
+    "video_base": 3,
+    "post_base": 3,
+    "likes_per_bonus": 20,
+    "comment": "video_base/post_base: 每用户初始可发布视频/帖子数量；likes_per_bonus: 每获得多少赞额外+1次发布机会"
+  },
+  "venv": {
+    "use_venv": true,
+    "venv_folder": "flash",
+    "python_subpath": "Scripts/python.exe",
+    "pip_subpath": "Scripts/pip.exe"
+  },
+  "pagination": {
+    "videos_per_page": 12,
+    "posts_per_page": 10
+  }
+}

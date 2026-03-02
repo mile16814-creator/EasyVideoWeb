@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>User</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    :root {
+      --boke-pink: #FB7299;
+      --boke-blue: #00AEEC;
+      --text-main: #222;
+      --text-gray: #6d757a;
+      --bg-gray: #f4f5f7;
+      --card-bg: #fff;
+    }
+
+    body {
+      background-color: var(--bg-gray);
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      position: relative;
+      z-index: 10;
+    }
+
+    .main-wrapper {
+      flex: 1;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .h-banner {
+      height: 200px;
+      width: 100%;
+      background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      margin-bottom: 10px;
+      border-radius: 0 0 4px 4px;
+    }
+    
+    .h-banner-edit {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 32px;
+      height: 32px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .h-banner-edit:hover {
+      opacity: 1;
+    }
+
+    .h-user {
+      position: relative;
+      padding: 0 20px 20px 20px;
+      display: flex;
+      align-items: flex-end;
+      margin-top: -20px;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .h-avatar-wrapper {
+      position: relative;
+      margin-right: 20px;
+      margin-top: -40px;
+      z-index: 2;
+    }
+
+    .h-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      background: #eee;
+      position: relative;
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .h-avatar-edit {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 28px;
+      height: 28px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .h-avatar-edit:hover {
+      background: #f4f5f7;
+    }
+
+    .h-info {
+      flex: 1;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .h-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .h-sign {
+      font-size: 14px;
+      color: var(--text-gray);
+      margin-top: 8px;
+      max-width: 600px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .h-stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .h-stat-item {
+      font-size: 14px;
+      color: var(--text-gray);
+      cursor: pointer;
+    }
+    .h-stat-item b {
+      color: var(--text-main);
+      margin-right: 4px;
+    }
+    .h-stat-item:hover {
+      color: var(--boke-blue);
+    }
+
+    .h-actions {
+      display: flex;
+      gap: 10px;
+      padding-bottom: 15px;
+    }
+
+    .btn-action {
+      padding: 6px 20px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid #ccd0d7;
+      background: #fff;
+      color: var(--text-gray);
+    }
+    .btn-action.primary {
+      background: var(--boke-blue);
+      color: #fff;
+      border-color: var(--boke-blue);
+    }
+    .btn-action:hover {
+      opacity: 0.9;
+    }
+    .btn-action.outline:hover {
+      border-color: var(--boke-blue);
+      color: var(--boke-blue);
+    }
+    .fav-section-title {
+      font-size: 14px;
+      color: #6d757a;
+      margin: 12px 0 8px 0;
+    }
+    .fav-post-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .fav-post-card {
+      position: relative;
+      background: #fff;
+      border: 1px solid #e5e9f2;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .fav-post-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .fav-post-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fav-post-preview {
+      font-size: 13px;
+      color: #6d757a;
+      line-height: 1.4;
+      height: 36px;
+      overflow: hidden;
+    }
+    .fav-post-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #9499A0;
+    }
+    .fav-scroll {
+      max-height: 520px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .fav-scroll .video-grid,
+    .fav-scroll .fav-post-list {
+      padding-bottom: 6px;
+    }
+
+    .n-navigator {
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      height: 60px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .n-tab {
+      margin-right: 30px;
+      font-size: 16px;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .n-tab:hover {
+      color: var(--boke-blue);
+    }
+
+    .n-tab.active {
+      color: var(--boke-blue);
+    }
+
+    .n-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--boke-blue);
+      border-radius: 2px;
+    }
+
+    .n-tab.disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    .n-icon {
+      margin-right: 6px;
+      font-size: 18px;
+    }
+
+    .content-area {
+      min-height: 400px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .content-left {
+      flex: 1;
+      background: #fff;
+      border-radius: 4px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .content-right {
+      width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-header {
+      font-size: 20px;
+      font-weight: 400;
+      color: #000;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 20px;
+    }
+
+    .v-card {
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .v-thumb {
+      width: 100%;
+      padding-top: 60%;
+      background: #f1f4fa;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .v-title {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 20px;
+      height: 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      color: var(--text-main);
+    }
+    
+    .v-title:hover {
+      color: var(--boke-blue);
+    }
+
+    .v-meta {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #999;
+      display: flex;
+      align-items: center;
+    }
+    .v-icon {
+      margin-right: 4px;
+      width: 14px;
+      height: 14px;
+      background: #ccc;
+      display: inline-block;
+      vertical-align: middle;
+      border-radius: 50%;
+    }
+
+    .settings-form {
+      max-width: 600px;
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    .form-label {
+      font-size: 14px;
+      color: var(--text-gray);
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .form-input {
+      flex: 1;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid #ccd0d7;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+      border-color: var(--boke-blue);
+    }
+    
+    .form-btn {
+      height: 40px;
+      padding: 0 20px;
+      border-radius: 4px;
+      background: var(--boke-blue);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      min-width: 100px;
+    }
+    
+    .form-btn.outline {
+      background: transparent;
+      border: 1px solid var(--boke-blue);
+      color: var(--boke-blue);
+    }
+    
+    .msg-box {
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+    .msg-box.success {
+      background: #e3f9e5;
+      color: #1f7c35;
+      display: block;
+    }
+    .msg-box.error {
+      background: #ffe6e6;
+      color: #cc0000;
+      display: block;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .widget {
+      background: #fff;
+      border-radius: 4px;
+      padding: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .widget-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    .widget-content {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 0;
+      color: #999;
+      font-size: 14px;
+    }
+    .app-loading {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-gray);
+    }
+    .app-loading::after {
+      content: '';
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e0e0e0;
+      border-top-color: var(--boke-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="app" class="app" v-cloak>
+    <div v-show="!langReady" class="app-loading"></div>
+    <div v-show="langReady">
+    <header class="boke-header">
+      <div class="header-content">
+        <div class="header-left">
+          <a href="/" class="boke-logo">
+            <svg viewBox="0 0 200 50" height="30" width="140" fill="#FB7299">
+              <text x="0" y="35" font-family="Arial" font-weight="bold" font-size="28">EasyVideoWeb</text>
+            </svg>
+          </a>
+          <nav class="header-nav">
+            <a class="active" href="/">{{ t('common.header.videoHome') }}</a>
+            <a class="active" href="/posts.html">{{ t('common.header.postHome') }}</a>
+          </nav>
+        </div>
+        <div class="header-center">
+          <div class="search-box">
+            <input v-model="searchKeyword" type="text" :placeholder="t('common.header.searchPlaceholder')" @keyup.enter="onSearch" />
+            <button @click="onSearch">
+              <svg viewBox="0 0 1024 1024">
+                <path d="M447 64c211 0 383 172 383 383 0 87-29 167-78 231l183 183c14 14 14 36 0 50s-36 14-50 0L702 728c-64 49-144 78-231 78-211 0-383-172-383-383S236 64 447 64z m0 72c-171 0-311 140-311 311s140 311 311 311 311-140 311-311S618 136 447 136z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="header-right">
+          <a href="/messages.html" class="msg-icon-link" id="msgIconLink" :title="t('common.header.messageCenter')">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#FB7299" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span class="header-msg-badge" id="headerMsgBadge" v-show="unreadCount > 0" :style="unreadCount > 0 ? { display: 'flex' } : {}">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+          </a>
+          <div class="user-entry" @click="goUserOrLogin">
+            <div class="avatar-placeholder" :style="headerAvatarStyle" v-text="headerAvatarText"></div>
+          </div>
+          <button class="upload-btn" @click="goUpload">{{ t('common.header.upload') }}</button>
+          <button class="upload-btn" @click="goPostUpload">{{ t('common.header.postUpload') }}</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-wrapper">
+      <div class="h-banner" :style="bannerStyle" id="banner">
+        <label class="h-banner-edit" v-show="!isPublicView" :title="t('user.banner.changeCover')">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          <input type="file" ref="bannerInput" accept="image/*" @change="onBannerChange" hidden>
+        </label>
+      </div>
+
+      <div class="h-user">
+        <div class="h-avatar-wrapper">
+          <div class="h-avatar" id="userAvatar" :style="userAvatarStyle" v-html="userAvatarHtml"></div>
+          <label class="h-avatar-edit" v-show="!isPublicView" :title="t('user.avatar.changeAvatar')">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            <input type="file" ref="avatarInput" accept="image/*" @change="onAvatarChange" hidden>
+          </label>
+        </div>
+        <div class="h-info">
+          <div class="h-name">
+            <span>{{ nicknameDisplay }}</span>
+          </div>
+          <div class="h-sign" id="emailText">{{ emailDisplay }}</div>
+        </div>
+      </div>
+
+      <div class="n-navigator">
+        <div class="n-tab" :class="{ active: activeTab === 'videos' }" @click="switchTab('videos')">
+          <span class="n-icon">{{ t('user.tabs.videos') }}</span>
+        </div>
+        <div class="n-tab" :class="{ active: activeTab === 'posts', disabled: isPublicView }" @click="!isPublicView && switchTab('posts')">
+          <span class="n-icon">{{ t('user.tabs.posts') }}</span>
+        </div>
+        <div class="n-tab" v-show="!isPublicView" :class="{ active: activeTab === 'settings' }" @click="switchTab('settings')">
+          <span class="n-icon">{{ t('user.tabs.settings') }}</span>
+        </div>
+        <div class="n-tab" :class="{ active: activeTab === 'fav', disabled: isPublicView }" @click="!isPublicView && switchTab('fav')">
+          <span class="n-icon">{{ t('user.tabs.fav') }}</span>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <div class="content-left">
+          <div v-show="activeTab === 'videos'" class="tab-content">
+            <div class="section-header">
+              <span>{{ isPublicView ? t('user.content.taVideos') : t('user.content.myVideos') }}</span>
+              <span v-show="!isPublicView" style="font-size:12px; color:#999; cursor:pointer;">{{ t('user.content.latestPublish') }}</span>
+            </div>
+            <div class="video-grid">
+              <div v-for="video in userVideos" :key="video.id" class="v-card" @click="goPlayer(video.id)">
+                <div class="v-thumb" :style="getThumbStyle(video)" style="position:relative;">
+                  <span v-if="video.reviewStatus === 'pending'" style="position:absolute;top:6px;left:6px;background:#f59e0b;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;">{{ t('user.review.pending') }}</span>
+                  <span v-else-if="video.reviewStatus === 'takedown'" style="position:absolute;top:6px;left:6px;background:#e53e3e;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;" :title="escapeForTitle(video.takedownReason || t('user.review.violationReason'))">{{ t('user.review.takedown') }}</span>
+                  <span v-else-if="video.reviewStatus === 'rejected_violence'" style="position:absolute;top:6px;left:6px;background:#e53e3e;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;">{{ t('user.review.rejectedViolence') }}</span>
+                  <span v-else-if="video.reviewStatus === 'rejected_nsfw'" style="position:absolute;top:6px;left:6px;background:#e53e3e;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;">{{ t('user.review.rejectedNsfw') }}</span>
+                  <span v-else-if="video.reviewStatus && video.reviewStatus.startsWith('rejected')" style="position:absolute;top:6px;left:6px;background:#e53e3e;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;">{{ t('user.review.rejected') }}</span>
+                </div>
+                <div class="v-title">{{ video.title }}</div>
+                <div class="v-meta">
+                  <span>{{ formatDate(video.createdAt) }}</span>
+                  <span style="margin-left:auto;">{{ video.views || 0 }}</span>
+                </div>
+              </div>
+              <div v-if="!userVideos.length" class="empty-state" style="grid-column:1/-1">{{ t('user.content.noVideos') }}</div>
+            </div>
+          </div>
+
+          <div v-show="activeTab === 'posts'" class="tab-content">
+            <div class="section-header">{{ t('user.content.myPosts') }}</div>
+            <div class="fav-section-title">{{ t('user.content.postList') }}</div>
+            <div class="fav-scroll">
+              <div class="fav-post-list">
+                <div v-for="post in userPosts" :key="post.id" class="fav-post-card" @click="goPostDetail(post.id)">
+                  <span v-if="post.reviewStatus === 'pending'" style="position:absolute;top:6px;left:6px;background:#f59e0b;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;">{{ t('user.review.pending') }}</span>
+                  <span v-else-if="post.reviewStatus === 'takedown'" style="position:absolute;top:6px;left:6px;background:#e53e3e;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;" :title="escapeForTitle(post.takedownReason || t('user.review.violationReason'))">{{ t('user.review.takedown') }}</span>
+                  <span v-else-if="post.reviewStatus && post.reviewStatus.startsWith('rejected')" style="position:absolute;top:6px;left:6px;background:#e53e3e;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;z-index:2;">{{ t('user.review.rejectedShort') }}</span>
+                  <div class="fav-post-title">{{ post.title }}</div>
+                  <div class="fav-post-preview">{{ (post.content || '').replace(/<[^>]+>/g, '').slice(0, 80) }}</div>
+                  <div class="fav-post-meta">
+                    <span>{{ formatDate(post.createdAt) }}</span>
+                    <span>{{ t('user.post.like') }} {{ post.likeCount || 0 }}</span>
+                    <span>{{ t('user.post.views') }} {{ post.views || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-if="!userPosts.length" class="empty-state">{{ t('user.content.noPosts') }}</div>
+            </div>
+          </div>
+
+          <div v-show="activeTab === 'settings'" class="tab-content">
+            <div class="section-header">{{ t('user.content.accountSettings') }}</div>
+            <div class="settings-form">
+              <div class="form-group">
+                <label class="form-label">{{ t('user.settings.changeNickname') }}</label>
+                <div class="form-row">
+                  <input v-model="form.nickname" class="form-input" :placeholder="t('user.settings.nicknamePlaceholder')">
+                  <button class="form-btn" @click="saveNickname">{{ t('user.settings.save') }}</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ t('user.settings.changePassword') }}</label>
+                <div class="form-row">
+                  <input v-model="form.password" type="password" class="form-input" :placeholder="passwordPlaceholder">
+                  <button class="form-btn" @click="savePassword">{{ t('user.settings.changePasswordBtn') }}</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ t('user.settings.changeEmail') }}</label>
+                <div class="form-row" style="margin-bottom:10px;">
+                  <input v-model="form.newEmail" class="form-input" :placeholder="t('user.settings.newEmailPlaceholder')">
+                  <button class="form-btn outline" @click="sendEmailCode">{{ t('user.settings.getCode') }}</button>
+                </div>
+                <div class="form-row">
+                  <input v-model="form.emailCode" class="form-input" :placeholder="t('user.settings.codePlaceholder')">
+                  <button class="form-btn" @click="verifyEmail">{{ t('user.settings.confirmChange') }}</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ t('user.settings.language') }}</label>
+                <div class="form-row">
+                  <select v-model="locale" @change="onLocaleChange" class="form-input" style="max-width:200px;">
+                    <option value="zh-CN">简体中文</option>
+                    <option value="en-US">English</option>
+                    <option value="ru-RU">Русский</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">{{ t('user.settings.logoutLabel') }}</label>
+                <div class="form-row">
+                  <button class="form-btn outline" @click="logout">{{ t('user.settings.logout') }}</button>
+                </div>
+              </div>
+              <div :class="['msg-box', profileMsgType]" v-show="profileMsgText">{{ profileMsgText }}</div>
+            </div>
+          </div>
+
+          <div v-show="activeTab === 'fav'" class="tab-content">
+            <div class="section-header">{{ t('user.content.myFav') }}</div>
+            <div class="fav-section-title">{{ t('user.content.videoSection') }}</div>
+            <div class="fav-scroll">
+              <div class="video-grid">
+                <div v-for="video in favVideos" :key="video.id" class="v-card" @click="goPlayer(video.id)">
+                  <div class="v-thumb" :style="getThumbStyle(video)"></div>
+                  <div class="v-title">{{ video.title }}</div>
+                  <div class="v-meta">{{ formatDate(video.createdAt) }} · {{ video.views || 0 }}</div>
+                </div>
+              </div>
+              <div v-if="!favVideos.length" class="empty-state">{{ t('user.content.favEmpty') }}</div>
+            </div>
+            <div class="fav-section-title">{{ t('user.content.postSection') }}</div>
+            <div class="fav-scroll">
+              <div class="fav-post-list">
+                <div v-for="post in favPosts" :key="post.id" class="fav-post-card" @click="goPostDetail(post.id)">
+                  <div class="fav-post-title">{{ post.title }}</div>
+                  <div class="fav-post-preview">{{ (post.content || '').replace(/<[^>]+>/g, '').slice(0, 80) }}</div>
+                  <div class="fav-post-meta">
+                    <span>{{ formatDate(post.createdAt) }}</span>
+                    <span>{{ t('user.post.like') }} {{ post.likeCount || 0 }}</span>
+                    <span>{{ t('user.post.views') }} {{ post.views || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-if="!favPosts.length" class="empty-state">{{ t('user.content.favEmpty') }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-right">
+          <div class="widget">
+            <div class="widget-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>{{ t('user.widget.notice') }}</span>
+              <span v-show="!isPublicView" style="font-size:12px; color:#00AEEC; cursor:pointer;" @click="editNotice">{{ t('user.widget.edit') }}</span>
+            </div>
+            <div class="widget-content" v-show="!noticeEditing" id="noticeContent">{{ noticeDisplay }}</div>
+            <div v-show="noticeEditing" style="margin-top:10px;">
+              <textarea v-model="form.notice" style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px; resize:vertical; box-sizing:border-box; font-family:inherit;"></textarea>
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                <button style="background:#fff; border:1px solid #ddd; color:#666; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:12px;" @click="cancelNotice">{{ t('user.widget.cancel') }}</button>
+                <button style="background:#00AEEC; border:none; color:#fff; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:12px;" @click="saveNotice">{{ t('user.widget.save') }}</button>
+              </div>
+            </div>
+          </div>
+          <div class="widget">
+            <div class="widget-title" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>{{ t('user.widget.motto') }}</span>
+              <span v-show="!isPublicView" style="font-size:12px; color:#00AEEC; cursor:pointer;" @click="editMotto">{{ t('user.widget.edit') }}</span>
+            </div>
+            <div class="widget-content" v-show="!mottoEditing" id="mottoContent">{{ mottoDisplay }}</div>
+            <div v-show="mottoEditing" style="margin-top:10px;">
+              <textarea v-model="form.motto" maxlength="10" style="width:100%; height:80px; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px; resize:vertical; box-sizing:border-box; font-family:inherit;"></textarea>
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                <button style="background:#fff; border:1px solid #ddd; color:#666; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:12px;" @click="cancelMotto">{{ t('user.widget.cancel') }}</button>
+                <button style="background:#00AEEC; border:none; color:#fff; padding:4px 12px; border-radius:4px; cursor:pointer; font-size:12px;" @click="saveMotto">{{ t('user.widget.save') }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script>
+    const { createApp, ref, computed, watch, onMounted } = Vue;
+
+    const params = new URLSearchParams(window.location.search);
+    const publicEmail = params.get('email');
+    const isPublicView = !!publicEmail;
+    const token = localStorage.getItem('authToken');
+
+    if (!token && !isPublicView) {
+      const redirectTarget = window.location.pathname + window.location.search;
+      window.location.href = `/?login=1&redirect=${encodeURIComponent(redirectTarget)}`;
+    }
+
+    function getLoginRedirectUrl(target) {
+      const redirectTarget = target || (window.location.pathname + window.location.search);
+      return `/?login=1&redirect=${encodeURIComponent(redirectTarget)}`;
+    }
+
+    createApp({
+      setup() {
+        const lang = ref({});
+        const locale = ref(localStorage.getItem('evw_locale') || 'zh-CN');
+
+        const langReady = ref(false);
+        async function loadLanguage() {
+          try {
+            if (!localStorage.getItem('evw_locale')) {
+              try {
+                const res = await fetch('/api/locale');
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.locale) { locale.value = data.locale; localStorage.setItem('evw_locale', data.locale); }
+                }
+              } catch (_) {}
+            } else { locale.value = localStorage.getItem('evw_locale') || 'zh-CN'; }
+            const res = await fetch(`/language/${locale.value}.json`);
+            if (res.ok) {
+              lang.value = await res.json();
+              if (lang.value.user && lang.value.user.pageTitle) document.title = lang.value.user.pageTitle;
+            } else {
+              const fallback = await fetch('/language/zh-CN.json');
+              if (fallback.ok) lang.value = await fallback.json();
+            }
+          } catch (e) {
+            const fallback = await fetch('/language/zh-CN.json');
+            if (fallback.ok) lang.value = await fallback.json();
+          } finally {
+            langReady.value = true;
+          }
+        }
+        function onLocaleChange() {
+          localStorage.setItem('evw_locale', locale.value);
+          loadLanguage();
+          setMsg(t('user.messages.languageUpdated'), 'success');
+        }
+        function getThumbStyle(video) {
+          const url = (video && video.thumbUrl) ? video.thumbUrl.replace(/'/g, "\\'") : '';
+          return { backgroundImage: url ? `url('${url}')` : 'none' };
+        }
+        function escapeForTitle(s) {
+          if (!s) return '';
+          return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function t(key, params = {}) {
+          const keys = key.split('.');
+          let v = lang.value;
+          for (const k of keys) v = v != null ? v[k] : undefined;
+          if (v == null) return key;
+          let s = String(v);
+          Object.keys(params).forEach(k => { s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), params[k]); });
+          return s;
+        }
+
+        const pageTitle = computed(() => (lang.value.user && lang.value.user.pageTitle) || '');
+        const searchKeyword = ref('');
+        const unreadCount = ref(0);
+        const activeTab = ref('videos');
+        const profileUser = ref(null);
+        const userVideos = ref([]);
+        const userPosts = ref([]);
+        const favVideos = ref([]);
+        const favPosts = ref([]);
+        const bannerStyle = ref({});
+        const noticeEditing = ref(false);
+        const mottoEditing = ref(false);
+        const profileMsgText = ref('');
+        const profileMsgType = ref('');
+        const form = ref({
+          nickname: '',
+          password: '',
+          newEmail: '',
+          emailCode: '',
+          notice: '',
+          motto: ''
+        });
+
+        const nicknameDisplay = computed(() => {
+          if (!profileUser.value) return (lang.value.user && lang.value.user.profile && lang.value.user.profile.loading) || '...';
+          if (profileUser.value.nickname) return profileUser.value.nickname;
+          return t('user.profile.nicknameNotSet');
+        });
+        const emailDisplay = computed(() => {
+          if (!profileUser.value) return (lang.value.user && lang.value.user.profile && lang.value.user.profile.defaultSign) || '';
+          if (profileUser.value.email) return t('user.profile.emailLabel').replace(/\{email\}/g, profileUser.value.email);
+          return t('user.profile.emailNotSet');
+        });
+        const noticeDisplay = computed(() => profileUser.value && profileUser.value.notice ? profileUser.value.notice : (lang.value.user && lang.value.user.profile && lang.value.user.profile.defaultNotice) || '');
+        const mottoDisplay = computed(() => profileUser.value && profileUser.value.motto ? profileUser.value.motto : (lang.value.user && lang.value.user.profile && lang.value.user.profile.defaultMotto) || '');
+        const passwordPlaceholder = computed(() => {
+          if (!profileUser.value) return t('user.settings.passwordPlaceholder');
+          return profileUser.value.hasPassword ? t('user.settings.passwordSetPlaceholder') : t('user.settings.setPasswordPlaceholder');
+        });
+
+        const userAvatarStyle = computed(() => {
+          const user = profileUser.value;
+          if (user && user.avatarUrl) return { backgroundImage: `url('${user.avatarUrl}')`, backgroundColor: 'transparent' };
+          return { backgroundImage: 'none', backgroundColor: '#FB7299' };
+        });
+        const userAvatarHtml = computed(() => {
+          const user = profileUser.value;
+          if (user && user.avatarUrl) return '';
+          const firstChar = (user && user.nickname ? user.nickname : 'U').charAt(0).toUpperCase();
+          return `<span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#fff; font-size:40px; font-weight:bold;">${firstChar}</span>`;
+        });
+        const headerAvatarStyle = computed(() => {
+          const user = profileUser.value;
+          if (token && user && user.avatarUrl) return { backgroundImage: `url('${user.avatarUrl}')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: 'transparent' };
+          if (token && user && user.nickname) return { backgroundImage: 'none', backgroundColor: '#00AEEC', color: '#fff' };
+          return { backgroundImage: 'url("data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='32' fill='%23E3E5E7'/><circle cx='32' cy='24' r='10' fill='%239499A0'/><path d='M12 54c4-10 16-14 20-14s16 4 20 14' fill='%239499A0'/></svg>") + '")', backgroundSize: '70%', backgroundColor: '#E3E5E7' };
+        });
+        const headerAvatarText = computed(() => {
+          if (!token) return t('common.header.loginRegister');
+          const user = profileUser.value;
+          return (user && user.nickname) ? user.nickname.charAt(0).toUpperCase() : 'U';
+        });
+
+        function formatDate(createdAt) {
+          if (!createdAt) return '';
+          return new Date(createdAt).toLocaleDateString();
+        }
+        function setMsg(text, type) {
+          profileMsgText.value = text;
+          profileMsgType.value = type;
+          setTimeout(() => { profileMsgText.value = ''; }, 3000);
+        }
+        function authFetch(url, options = {}) {
+          const headers = options.headers || {};
+          if (token) headers.Authorization = `Bearer ${token}`;
+          return fetch(url, { ...options, headers });
+        }
+
+        function goUserOrLogin() {
+          if (token) window.location.href = '/user.html';
+          else window.location.href = getLoginRedirectUrl();
+        }
+        function goUpload() {
+          if (token) window.location.href = '/creator.html';
+          else window.location.href = getLoginRedirectUrl('/creator.html');
+        }
+        function goPostUpload() {
+          if (token) window.location.href = '/post_create.html';
+          else window.location.href = getLoginRedirectUrl('/post_create.html');
+        }
+        function onSearch() {
+          const q = searchKeyword.value.trim();
+          if (q) window.location.href = `/?q=${encodeURIComponent(q)}`;
+        }
+        function goPlayer(id) {
+          window.location.href = `/player.html?id=${encodeURIComponent(id)}`;
+        }
+        function goPostDetail(id) {
+          window.location.href = `/post_detail.html?id=${id}`;
+        }
+
+        function switchTab(name) {
+          if (isPublicView && (name === 'settings' || name === 'fav' || name === 'posts')) return;
+          activeTab.value = name;
+          if (name === 'fav' && !isPublicView) loadFavorites();
+        }
+
+        async function loadFavorites() {
+          try {
+            const res = await authFetch('/api/profile/favorites');
+            if (!res.ok) return;
+            const videos = await res.json();
+            favVideos.value = (videos || []).slice().sort((a, b) => {
+              const timeA = a.favoriteAt ? new Date(a.favoriteAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+              const timeB = b.favoriteAt ? new Date(b.favoriteAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+              return timeB - timeA;
+            });
+          } catch (e) { console.error(e); }
+          try {
+            const res = await authFetch('/api/profile/post-favorites');
+            if (!res.ok) return;
+            const posts = await res.json();
+            favPosts.value = (posts || []).slice().sort((a, b) => {
+              const timeA = a.favoriteAt ? new Date(a.favoriteAt).getTime() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+              const timeB = b.favoriteAt ? new Date(b.favoriteAt).getTime() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+              return timeB - timeA;
+            });
+          } catch (e) { console.error(e); }
+        }
+
+        async function loadProfile() {
+          try {
+            const res = await authFetch('/api/profile');
+            if (res.status === 401) {
+              localStorage.removeItem('authToken');
+              window.location.href = getLoginRedirectUrl();
+              return;
+            }
+            if (!res.ok) throw new Error(await res.text());
+            const user = await res.json();
+            profileUser.value = user;
+            form.value.nickname = user.nickname || '';
+            if (user.notice) form.value.notice = user.notice;
+            if (user.motto) form.value.motto = user.motto;
+            bannerStyle.value = user.bannerUrl ? { backgroundImage: `url('${user.bannerUrl}')` } : {};
+            userVideos.value = user.videos || [];
+            userPosts.value = user.posts || [];
+          } catch (err) {
+            console.error(err);
+            setMsg(t('user.messages.loadProfileFail'), 'error');
+          }
+        }
+
+        async function loadPublicProfile() {
+          try {
+            const res = await fetch(`/api/users/profile?email=${encodeURIComponent(publicEmail)}`);
+            if (!res.ok) throw new Error(await res.text());
+            const user = await res.json();
+            profileUser.value = user;
+            bannerStyle.value = user.bannerUrl ? { backgroundImage: `url('${user.bannerUrl}')` } : {};
+            userVideos.value = user.videos || [];
+            userPosts.value = user.posts || [];
+          } catch (err) {
+            console.error(err);
+            setMsg(t('user.messages.loadProfileFail'), 'error');
+          }
+        }
+
+        async function saveNickname() {
+          const nickname = form.value.nickname.trim();
+          if (!nickname) {
+            setMsg(t('user.messages.enterNickname'), 'error');
+            return;
+          }
+          try {
+            const res = await authFetch('/api/profile/nickname', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nickname })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const user = await res.json();
+            profileUser.value = { ...profileUser.value, ...user };
+            setMsg(t('user.messages.nicknameUpdated'), 'success');
+          } catch (err) {
+            setMsg(err.message || t('user.messages.updateFail'), 'error');
+          }
+        }
+
+        async function savePassword() {
+          const password = form.value.password.trim();
+          if (!password) {
+            setMsg(t('user.messages.enterPassword'), 'error');
+            return;
+          }
+          if (!/^\d{6}$/.test(password)) {
+            setMsg(t('user.messages.passwordFormat'), 'error');
+            return;
+          }
+          try {
+            const res = await authFetch('/api/profile/password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            setMsg(t('user.messages.passwordUpdated'), 'success');
+            form.value.password = '';
+          } catch (err) {
+            setMsg(err.message || t('user.messages.updateFail'), 'error');
+          }
+        }
+
+        async function sendEmailCode() {
+          const email = form.value.newEmail.trim();
+          if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+            setMsg(t('user.messages.enterValidEmail'), 'error');
+            return;
+          }
+          try {
+            const res = await authFetch('/api/change-email/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            setMsg(t('user.messages.codeSent'), 'success');
+          } catch (err) {
+            setMsg(err.message || t('user.messages.sendFail'), 'error');
+          }
+        }
+
+        async function verifyEmail() {
+          const email = form.value.newEmail.trim();
+          const code = form.value.emailCode.trim();
+          if (!email || !code) {
+            setMsg(t('user.messages.enterEmailAndCode'), 'error');
+            return;
+          }
+          try {
+            const res = await authFetch('/api/change-email/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, code })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            if (data.token) localStorage.setItem('authToken', data.token);
+            profileUser.value = { ...profileUser.value, email: data.user?.email || email };
+            setMsg(t('user.messages.emailUpdated'), 'success');
+          } catch (err) {
+            setMsg(err.message || t('user.messages.updateFail'), 'error');
+          }
+        }
+
+        function logout() {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/';
+        }
+
+        async function handleUpload(file, url, typeKey) {
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await authFetch(url, { method: 'POST', body: formData });
+          if (!res.ok) throw new Error(await res.text());
+          const data = await res.json();
+          setMsg(t(typeKey), 'success');
+          return data;
+        }
+
+        const avatarInput = ref(null);
+        const bannerInput = ref(null);
+        function onAvatarChange(e) {
+          if (!e.target.files || !e.target.files.length) return;
+          handleUpload(e.target.files[0], '/api/profile/avatar', 'user.messages.avatarUpdated')
+            .then(data => {
+              if (data.avatarUrl) {
+                profileUser.value = { ...profileUser.value, avatarUrl: data.avatarUrl };
+              }
+            }).catch(() => {});
+          e.target.value = '';
+        }
+        function onBannerChange(e) {
+          if (!e.target.files || !e.target.files.length) return;
+          handleUpload(e.target.files[0], '/api/profile/banner', 'user.messages.coverUpdated')
+            .then(data => {
+              if (data.bannerUrl) bannerStyle.value = { backgroundImage: `url('${data.bannerUrl}')` };
+            }).catch(() => {});
+          e.target.value = '';
+        }
+
+        function editNotice() {
+          form.value.notice = noticeDisplay.value;
+          noticeEditing.value = true;
+        }
+        function cancelNotice() {
+          noticeEditing.value = false;
+        }
+        async function saveNotice() {
+          const notice = form.value.notice.trim();
+          try {
+            const res = await authFetch('/api/profile/notice', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ notice })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            profileUser.value = { ...profileUser.value, notice: notice || (lang.value.user && lang.value.user.profile && lang.value.user.profile.defaultNotice) };
+            noticeEditing.value = false;
+            setMsg(t('user.messages.noticeUpdated'), 'success');
+          } catch (err) {
+            setMsg(err.message || t('user.messages.updateFail'), 'error');
+          }
+        }
+
+        function editMotto() {
+          form.value.motto = mottoDisplay.value;
+          mottoEditing.value = true;
+        }
+        function cancelMotto() {
+          mottoEditing.value = false;
+        }
+        async function saveMotto() {
+          const motto = form.value.motto.trim();
+          if (motto.length > 10) {
+            setMsg(t('user.messages.mottoMaxLength'), 'error');
+            return;
+          }
+          try {
+            const res = await authFetch('/api/profile/motto', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ motto })
+            });
+            if (!res.ok) throw new Error(await res.text());
+            profileUser.value = { ...profileUser.value, motto: motto || (lang.value.user && lang.value.user.profile && lang.value.user.profile.defaultMotto) };
+            mottoEditing.value = false;
+            setMsg(t('user.messages.mottoUpdated'), 'success');
+          } catch (err) {
+            setMsg(err.message || t('user.messages.updateFail'), 'error');
+          }
+        }
+
+        async function requestReReview(post) {
+          if (!confirm(t('user.review.confirmReReview'))) return;
+          try {
+            const res = await authFetch(`/api/posts/${post.id}/manual-review`, { method: 'POST' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              alert(data.error || t('user.review.submitReReviewFail'));
+              return;
+            }
+            if (data.status === 'already_pending') alert(t('user.review.alreadyPending'));
+            else alert(t('user.review.reReviewSubmitted'));
+          } catch (err) {
+            alert(t('user.review.submitReReviewFail'));
+          }
+        }
+
+        onMounted(async () => {
+          await loadLanguage();
+          if (token) {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+              try {
+                profileUser.value = JSON.parse(userStr);
+              } catch (e) {
+                localStorage.removeItem('user');
+              }
+            }
+            fetch('/api/messages/unread-count', { headers: { Authorization: 'Bearer ' + token } })
+              .then(r => r.ok ? r.json() : null)
+              .then(d => { if (d && d.count != null) unreadCount.value = d.count; })
+              .catch(() => {});
+          }
+          if (isPublicView) {
+            await loadPublicProfile();
+          } else {
+            await loadProfile();
+          }
+        });
+
+        return {
+          t,
+          locale,
+          onLocaleChange,
+          pageTitle,
+          searchKeyword,
+          unreadCount,
+          activeTab,
+          isPublicView,
+          profileUser,
+          userVideos,
+          userPosts,
+          favVideos,
+          favPosts,
+          bannerStyle,
+          noticeEditing,
+          mottoEditing,
+          form,
+          profileMsgText,
+          profileMsgType,
+          nicknameDisplay,
+          emailDisplay,
+          noticeDisplay,
+          mottoDisplay,
+          passwordPlaceholder,
+          userAvatarStyle,
+          userAvatarHtml,
+          headerAvatarStyle,
+          headerAvatarText,
+          avatarInput,
+          bannerInput,
+          formatDate,
+          goUserOrLogin,
+          goUpload,
+          goPostUpload,
+          onSearch,
+          goPlayer,
+          goPostDetail,
+          switchTab,
+          loadFavorites,
+          saveNickname,
+          savePassword,
+          sendEmailCode,
+          verifyEmail,
+          logout,
+          onAvatarChange,
+          onBannerChange,
+          editNotice,
+          cancelNotice,
+          saveNotice,
+          editMotto,
+          cancelMotto,
+          saveMotto,
+          requestReReview,
+          getThumbStyle,
+          escapeForTitle,
+          langReady
+        };
+      }
+    }).mount('#app');
+  </script>
+  <style>[v-cloak]{display:none !important}</style>
+</body>
+</html>
