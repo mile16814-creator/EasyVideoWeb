@@ -3,6 +3,10 @@
 This document describes configuration, i18n, deployment, and features of **EasyVideoWeb** for development and operations.
 
 ---
+<img width="1961" height="1955" alt="屏幕截图 2026-03-03 034940" src="https://github.com/user-attachments/assets/8af70942-9866-4dae-a767-2b6d230fe37a" />
+<img width="2835" height="1744" alt="屏幕截图 2026-03-02 222200" src="https://github.com/user-attachments/assets/7dd55248-bdd1-4b13-8808-7ce1f484fa54" />
+<img width="2667" height="1283" alt="屏幕截图 2026-03-03 040452" src="https://github.com/user-attachments/assets/b3696ed5-9b0a-4c70-8263-7d423ca7614c" />
+
 
 ## Table of Contents
 
