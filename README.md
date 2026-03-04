@@ -31,7 +31,7 @@ This document describes configuration, i18n, deployment, and features of **EasyV
 
 ## 1. Project Overview
 
-- **Project Name**: EasyVideoWeb (formerly boke, renamed consistently)
+- **Project Name**: EasyVideoWeb
 - **Tech Stack**: Go backend + static frontend (Vue 3 + vanilla JS) + MySQL
 - **Key Features**: Video/post publishing, comments, likes, favorites, messages, user profile, review pipeline, admin console
 - **Modules**:
