@@ -144,6 +144,12 @@ Path: project root `app.config.json`.
   "pagination": {
     "videos_per_page": 12,
     "posts_per_page": 10
+  },
+  "server": {
+    "main_listen_addr": ":8080",
+    "main_base_url": "http://localhost:8080",
+    "admin_listen_addr": ":8081",
+    "admin_base_url": "http://localhost:8081"
   }
 }
 ```
@@ -167,14 +173,20 @@ Path: project root `app.config.json`.
   - Linux/macOS: `bin/python`, `bin/pip`
 
 - **pagination.videos_per_page**  
-  Videos per page setting (frontend does not read this value currently).
+  Videos per page setting; the frontend reads it dynamically from `/api/app-config`.
 
 - **pagination.posts_per_page**  
-  Posts per page setting (frontend does not read this value currently).
+  Posts per page setting; the frontend reads it dynamically from `/api/app-config`.
+
+- **server.main_listen_addr** / **server.admin_listen_addr**  
+  Listen addresses for the main site and admin site, default `:8080` and `:8081`.
+
+- **server.main_base_url** / **server.admin_base_url**  
+  Public URLs used for startup output and admin review/report jump links.
 
 **Defaults when missing**:  
 - venv defaults to `use_venv: true`, `venv_folder: "flash"`, Windows paths.  
-- Pagination is currently controlled by frontend defaults.
+- Pagination and listen addresses fall back to built-in defaults.
 
 ---
 

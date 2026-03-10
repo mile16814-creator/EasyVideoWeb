@@ -1,4 +1,4 @@
-﻿const state = {
+const state = {
   categories: [],
   videos: [],
   posters: [],
@@ -7,6 +7,18 @@
   pageSize: 12,
   posterIndex: 0,
   posterTimer: null
+}
+
+async function loadFrontendConfig() {
+  try {
+    const res = await fetch("/api/app-config")
+    if (!res.ok) return
+    const cfg = await res.json()
+    const size = cfg && cfg.pagination && Number(cfg.pagination.videosPerPage)
+    if (Number.isFinite(size) && size > 0) {
+      state.pageSize = size
+    }
+  } catch (_) {}
 }
 
 const elements = {
@@ -1119,6 +1131,7 @@ checkLoginState()
 loadMsgBadge()
 ;(async function () {
   if (window.evwLangPromise) await window.evwLangPromise
+  await loadFrontendConfig()
   await Promise.all([loadCategories(), loadVideos(), loadVideoRanking()])
   loadHomepagePosters()
 })()

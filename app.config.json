@@ -2,17 +2,22 @@
   "publish_quota": {
     "video_base": 3,
     "post_base": 3,
-    "likes_per_bonus": 20,
-    "comment": "video_base/post_base: 每用户初始可发布视频/帖子数量；likes_per_bonus: 每获得多少赞额外+1次发布机会"
+    "likes_per_bonus": 20
   },
   "venv": {
-    "use_venv": true,
-    "venv_folder": "flash",
-    "python_subpath": "Scripts/python.exe",
-    "pip_subpath": "Scripts/pip.exe"
+    "use_venv": false,
+    "venv_folder": "",
+    "python_subpath": "python",
+    "pip_subpath": "pip"
   },
   "pagination": {
     "videos_per_page": 12,
     "posts_per_page": 10
+  },
+  "server": {
+    "main_listen_addr": ":8082",
+    "main_base_url": "http://107.174.35.69:8082",
+    "admin_listen_addr": ":8081",
+    "admin_base_url": "http://localhost:8081"
   }
 }

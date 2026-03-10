@@ -71,20 +71,20 @@ type Video struct {
 }
 
 type Post struct {
-	ID           int64     `json:"id"`
-	Email        string    `json:"email"`
-	Nickname     string    `json:"nickname"`
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	ImagePath    string    `json:"imagePath"`
-	Category     string    `json:"category"`
-	CreatedAt    time.Time `json:"createdAt"`
-	LikeCount    int       `json:"likeCount"`
-	Views        int       `json:"views"`
-	AvatarURL    string    `json:"avatarUrl"` // Joined field
-	FavoriteAt   time.Time `json:"favoriteAt,omitempty"`
-	ReviewStatus   string `json:"reviewStatus,omitempty"`
-	TakedownReason string `json:"takedownReason,omitempty"`
+	ID             int64     `json:"id"`
+	Email          string    `json:"email"`
+	Nickname       string    `json:"nickname"`
+	Title          string    `json:"title"`
+	Content        string    `json:"content"`
+	ImagePath      string    `json:"imagePath"`
+	Category       string    `json:"category"`
+	CreatedAt      time.Time `json:"createdAt"`
+	LikeCount      int       `json:"likeCount"`
+	Views          int       `json:"views"`
+	AvatarURL      string    `json:"avatarUrl"` // Joined field
+	FavoriteAt     time.Time `json:"favoriteAt,omitempty"`
+	ReviewStatus   string    `json:"reviewStatus,omitempty"`
+	TakedownReason string    `json:"takedownReason,omitempty"`
 }
 
 type HomepagePoster struct {
@@ -116,6 +116,13 @@ var (
 	likesPerExtraPublish  = 20
 	baseVideoPublishLimit = 3
 	basePostPublishLimit  = 3
+	videoPageSize         = 12
+	postPageSize          = 10
+	mainListenAddr        string
+	mainPublicBaseURL     string
+	reviewUseVenv         bool
+	reviewPython          string
+	reviewPip             string
 	scanInterval          = 2 * time.Second
 	lastScan              time.Time
 	scanInProgress        bool
@@ -162,10 +169,62 @@ type User struct {
 	Motto        string    `json:"motto"`
 }
 
+// printDisabledFeatures 启动时打印因配置缺失而关闭的功能（适配 Linux 终端）
+func printDisabledFeatures() {
+	var disabled []string
+
+	// 1. 邮件服务（验证码注册、验证码登录、换绑邮箱验证码）
+	if smtpUser == "" || smtpPass == "" {
+		disabled = append(disabled, "邮件服务(验证码注册/登录/换绑邮箱) — 因 smtp.local.json 未配置或未提供 SMTP 账户密码 而关闭")
+	}
+
+	// 2. Python 审核（视频/帖子/评论 AI 审核）
+	if _, err := os.Stat(reviewPython); err != nil {
+		disabled = append(disabled, fmt.Sprintf("Python 审核(视频/帖子/评论 AI 审核) — 因 Python 解释器路径不存在(%s) 而关闭", reviewPython))
+	}
+
+	if len(disabled) == 0 {
+		return
+	}
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "========== 已关闭的功能 ==========")
+	for _, d := range disabled {
+		fmt.Fprintln(os.Stderr, "  [关闭] "+d)
+	}
+	fmt.Fprintln(os.Stderr, "==================================")
+	fmt.Fprintln(os.Stderr, "")
+}
+
+// isStdinTerminal 检测 stdin 是否为交互式终端（用于决定是否等待回车）
+func isStdinTerminal() bool {
+	fi, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+	return (fi.Mode() & os.ModeCharDevice) != 0
+}
+
+func waitForEnterOrExit() {
+	if isStdinTerminal() {
+		fmt.Print("按回车键退出...")
+		bufio.NewScanner(os.Stdin).Scan()
+	}
+	os.Exit(1)
+}
+
 func main() {
 	var debugMode bool
+	var daemonMode bool
 	flag.BoolVar(&debugMode, "debug", false, "enable debug logging")
+	flag.BoolVar(&daemonMode, "daemon", false, "run as daemon in background (Linux/Unix)")
 	flag.Parse()
+
+	// -daemon: 后台运行（仅 Linux/Unix 支持）
+	if daemonMode {
+		daemonize()
+		return
+	}
+
 	if !debugMode {
 		log.SetOutput(io.Discard)
 	}
@@ -173,11 +232,14 @@ func main() {
 	if err := loadMySQLConfig("mysql.local.json"); err != nil {
 		fmt.Fprintln(os.Stderr, "MySQL 配置错误:", err)
 		fmt.Fprintln(os.Stderr, "请正确配置 mysql.local.json（参考 mysql.local.example.json）后重试。")
-		fmt.Print("按回车键退出...")
-		bufio.NewScanner(os.Stdin).Scan()
-		os.Exit(1)
+		waitForEnterOrExit()
 	}
 	loadJWTSecret("jwt.local.json")
+	if err := loadAppConfig(); err != nil {
+		fmt.Fprintln(os.Stderr, "应用配置错误:", err)
+		fmt.Fprintln(os.Stderr, "请检查 app.config.json 的 JSON 格式以及 server/venv 配置项。")
+		waitForEnterOrExit()
+	}
 	err := os.MkdirAll(filepath.Join("storage", "videos"), 0o755)
 	if err != nil {
 		panic(err)
@@ -186,8 +248,8 @@ func main() {
 	_ = os.MkdirAll(filepath.Join("storage", "banners"), 0o755)
 	_ = os.MkdirAll(filepath.Join("storage", "posters"), 0o755)
 	ensurePythonDeps()
+	printDisabledFeatures()
 	initMySQL()
-	loadAppConfig()
 	refreshFromStorage()
 	refreshRankings()
 	go runRankingsRefreshEvery12h()
@@ -198,6 +260,7 @@ func main() {
 	mux.Handle("/media/avatars/", http.StripPrefix("/media/avatars/", http.FileServer(http.Dir("storage/avatars"))))
 	mux.Handle("/media/banners/", http.StripPrefix("/media/banners/", http.FileServer(http.Dir("storage/banners"))))
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("uploads"))))
+	mux.HandleFunc("/api/app-config", handleAppConfig)
 	mux.HandleFunc("/api/categories", handleCategories)
 	mux.HandleFunc("/api/video-categories", handleAdminVideoCategoriesAPI)
 	mux.HandleFunc("/api/post-categories", handlePostCategories)
@@ -246,14 +309,30 @@ func main() {
 	mux.HandleFunc("/api/user-punishment", handleUserPunishment)
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    mainListenAddr,
 		Handler: mux,
 	}
 
-	fmt.Println("http://localhost:8080")
+	fmt.Println(mainPublicBaseURL)
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic(err)
 	}
+}
+
+func handleAppConfig(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	writeJSON(w, map[string]any{
+		"pagination": map[string]int{
+			"videosPerPage": videoPageSize,
+			"postsPerPage":  postPageSize,
+		},
+		"server": map[string]string{
+			"mainBaseURL": mainPublicBaseURL,
+		},
+	})
 }
 
 func handleCategories(w http.ResponseWriter, r *http.Request) {
@@ -418,16 +497,7 @@ func handleAdminVideoCategoriesAPI(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		target := filepath.Join("storage", "videos", id)
-		entries, err := os.ReadDir(target)
-		if err != nil {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-		if len(entries) > 0 {
-			http.Error(w, "category not empty", http.StatusBadRequest)
-			return
-		}
-		if err := os.Remove(target); err != nil {
+		if err := os.RemoveAll(target); err != nil {
 			http.Error(w, "failed to delete category", http.StatusInternalServerError)
 			return
 		}
@@ -2704,8 +2774,8 @@ func writeMuteResponse(w http.ResponseWriter, reason string, mutedUntil time.Tim
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusForbidden)
 	_ = json.NewEncoder(w).Encode(map[string]any{
-		"code":        "muted",
-		"reason":      reason,
+		"code":       "muted",
+		"reason":     reason,
 		"mutedUntil": mutedUntil.Format("2006-01-02 15:04:05"),
 	})
 }
@@ -3074,7 +3144,7 @@ func handleUserPunishment(w http.ResponseWriter, r *http.Request) {
 		}
 		banned = map[string]any{
 			"reason":           reason,
-			"bannedUntil":     until.Format("2006-01-02 15:04:05"),
+			"bannedUntil":      until.Format("2006-01-02 15:04:05"),
 			"remainingSeconds": remaining,
 		}
 	}
@@ -3629,30 +3699,97 @@ func handleCreatorUpload(w http.ResponseWriter, r *http.Request) {
 
 type appConfig struct {
 	PublishQuota *struct {
-		VideoBase      int `json:"video_base"`
-		PostBase       int `json:"post_base"`
-		LikesPerBonus  int `json:"likes_per_bonus"`
+		VideoBase     int `json:"video_base"`
+		PostBase      int `json:"post_base"`
+		LikesPerBonus int `json:"likes_per_bonus"`
 	} `json:"publish_quota"`
+	Venv *struct {
+		UseVenv       *bool  `json:"use_venv"`
+		VenvFolder    string `json:"venv_folder"`
+		PythonSubpath string `json:"python_subpath"`
+		PipSubpath    string `json:"pip_subpath"`
+	} `json:"venv"`
+	Pagination *struct {
+		VideosPerPage int `json:"videos_per_page"`
+		PostsPerPage  int `json:"posts_per_page"`
+	} `json:"pagination"`
+	Server *struct {
+		MainListenAddr string `json:"main_listen_addr"`
+		MainBaseURL    string `json:"main_base_url"`
+	} `json:"server"`
 }
 
-func loadAppConfig() {
+func loadAppConfig() error {
 	data, err := os.ReadFile("app.config.json")
 	if err != nil {
-		return
+		return fmt.Errorf("failed to read app.config.json: %w", err)
 	}
+	data = bytes.TrimPrefix(data, []byte("\xef\xbb\xbf"))
 	var cfg appConfig
-	if json.Unmarshal(data, &cfg) != nil || cfg.PublishQuota == nil {
-		return
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return fmt.Errorf("invalid app.config.json: %w", err)
 	}
-	if cfg.PublishQuota.VideoBase > 0 {
-		baseVideoPublishLimit = cfg.PublishQuota.VideoBase
+	if cfg.PublishQuota != nil {
+		if cfg.PublishQuota.VideoBase > 0 {
+			baseVideoPublishLimit = cfg.PublishQuota.VideoBase
+		}
+		if cfg.PublishQuota.PostBase > 0 {
+			basePostPublishLimit = cfg.PublishQuota.PostBase
+		}
+		if cfg.PublishQuota.LikesPerBonus > 0 {
+			likesPerExtraPublish = cfg.PublishQuota.LikesPerBonus
+		}
 	}
-	if cfg.PublishQuota.PostBase > 0 {
-		basePostPublishLimit = cfg.PublishQuota.PostBase
+	if cfg.Pagination != nil {
+		if cfg.Pagination.VideosPerPage > 0 {
+			videoPageSize = cfg.Pagination.VideosPerPage
+		}
+		if cfg.Pagination.PostsPerPage > 0 {
+			postPageSize = cfg.Pagination.PostsPerPage
+		}
 	}
-	if cfg.PublishQuota.LikesPerBonus > 0 {
-		likesPerExtraPublish = cfg.PublishQuota.LikesPerBonus
+	if cfg.Server == nil {
+		return errors.New("missing server config in app.config.json")
 	}
+	mainListenAddr = strings.TrimSpace(cfg.Server.MainListenAddr)
+	if mainListenAddr == "" {
+		return errors.New("missing server.main_listen_addr in app.config.json")
+	}
+	mainPublicBaseURL = normalizeBaseURL(cfg.Server.MainBaseURL)
+	if mainPublicBaseURL == "" {
+		return errors.New("missing server.main_base_url in app.config.json")
+	}
+	if cfg.Venv == nil {
+		return errors.New("missing venv config in app.config.json")
+	}
+	if cfg.Venv.UseVenv == nil {
+		return errors.New("missing venv.use_venv in app.config.json")
+	}
+	reviewUseVenv = *cfg.Venv.UseVenv
+	pythonSubpath := strings.TrimSpace(cfg.Venv.PythonSubpath)
+	if pythonSubpath == "" {
+		return errors.New("missing venv.python_subpath in app.config.json")
+	}
+	pipSubpath := strings.TrimSpace(cfg.Venv.PipSubpath)
+	if pipSubpath == "" {
+		return errors.New("missing venv.pip_subpath in app.config.json")
+	}
+	if !reviewUseVenv {
+		reviewPython = pythonSubpath
+		reviewPip = pipSubpath
+		return nil
+	}
+	venvFolder := strings.TrimSpace(cfg.Venv.VenvFolder)
+	if venvFolder == "" {
+		return errors.New("missing venv.venv_folder in app.config.json")
+	}
+	reviewPython = filepath.Join(venvFolder, filepath.FromSlash(pythonSubpath))
+	reviewPip = filepath.Join(venvFolder, filepath.FromSlash(pipSubpath))
+	return nil
+}
+
+func normalizeBaseURL(value string) string {
+	return strings.TrimRight(strings.TrimSpace(value), "/")
 }
 
 func refreshRankings() {
@@ -4488,20 +4625,38 @@ func handlePostDetail(w http.ResponseWriter, r *http.Request) {
 
 // ============ Python Env ============
 
-var reviewPython = filepath.Join("venv311_new", "Scripts", "python.exe")
-
 func ensurePythonDeps() {
-	// 使用绝对路径，确保依赖检查与子进程使用同一虚拟环境
-	if abs, err := filepath.Abs(reviewPython); err == nil {
-		reviewPython = abs
-	}
-	pip := filepath.Join("venv311_new", "Scripts", "pip.exe")
-	if abs, err := filepath.Abs(pip); err == nil {
-		pip = abs
-	}
-	if _, err := os.Stat(reviewPython); err != nil {
-		log.Printf("[python] 警告: 虚拟环境不存在: %s, 跳过依赖检查", reviewPython)
-		return
+	if !reviewUseVenv {
+		log.Printf("[python] 使用系统 Python: %s", reviewPython)
+		// 系统 Python：通过 PATH 查找可执行文件，确保依赖检查与审核脚本使用同一解释器
+		if p, err := exec.LookPath(reviewPython); err != nil {
+			log.Printf("[python] 警告: 系统 Python 未找到(%s): %v, 跳过依赖检查", reviewPython, err)
+			return
+		} else {
+			reviewPython = p
+		}
+		if p, err := exec.LookPath(reviewPip); err != nil {
+			log.Printf("[python] 警告: 系统 pip 未找到(%s): %v, 跳过依赖检查", reviewPip, err)
+			return
+		} else {
+			reviewPip = p
+		}
+	} else {
+		// 虚拟环境：使用绝对路径
+		if abs, err := filepath.Abs(reviewPython); err == nil {
+			reviewPython = abs
+		}
+		if abs, err := filepath.Abs(reviewPip); err == nil {
+			reviewPip = abs
+		}
+		if _, err := os.Stat(reviewPython); err != nil {
+			log.Printf("[python] 警告: 虚拟环境不存在: %s, 跳过依赖检查", reviewPython)
+			return
+		}
+		if _, err := os.Stat(reviewPip); err != nil {
+			log.Printf("[python] 警告: pip 不存在: %s, 跳过依赖检查", reviewPip)
+			return
+		}
 	}
 
 	// 优先用 modelscope 官方 requirements 一次性装齐（hub + datasets 等，含 datasets 3.x）
@@ -4509,7 +4664,7 @@ func ensurePythonDeps() {
 	reqFile := filepath.Join(wd, "requirements_review.txt")
 	if _, err := os.Stat(reqFile); err == nil {
 		log.Printf("[python] 使用 requirements_review.txt 安装 modelscope 及全部依赖...")
-		installReq := exec.Command(pip, "install", "-r", reqFile)
+		installReq := exec.Command(reviewPip, "install", "-r", reqFile)
 		installReq.Dir = wd
 		installReq.Stdout = os.Stdout
 		installReq.Stderr = os.Stderr
@@ -4522,12 +4677,12 @@ func ensurePythonDeps() {
 
 	// 视频审核 + 基础环境
 	required := []string{"numpy", "opencv-python", "tensorflow", "tf_keras"}
-	log.Printf("[python] 检查 Python 3.11 虚拟环境依赖... (python=%s)", reviewPython)
+	log.Printf("[python] 检查审核依赖... (python=%s)", reviewPython)
 
-	out, err := exec.Command(pip, "list", "--format=freeze").Output()
+	out, err := exec.Command(reviewPip, "list", "--format=freeze").Output()
 	if err != nil {
 		log.Printf("[python] pip list 失败: %v, 尝试安装基础依赖", err)
-		installPythonPkgs(pip, required)
+		installPythonPkgs(reviewPip, required)
 		return
 	}
 
@@ -4555,7 +4710,7 @@ func ensurePythonDeps() {
 
 	if len(missing) > 0 {
 		log.Printf("[python] 缺失基础依赖: %v, 开始安装...", missing)
-		installPythonPkgs(pip, missing)
+		installPythonPkgs(reviewPip, missing)
 	} else {
 		log.Printf("[python] 所有依赖已就绪")
 	}

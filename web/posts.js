@@ -23,6 +23,18 @@ const state = {
     postCurrentPage: 1,
     postPageSize: 10
 };
+
+async function loadFrontendConfig() {
+    try {
+        const res = await fetch("/api/app-config");
+        if (!res.ok) return;
+        const cfg = await res.json();
+        const size = cfg && cfg.pagination && Number(cfg.pagination.postsPerPage);
+        if (Number.isFinite(size) && size > 0) {
+            state.postPageSize = size;
+        }
+    } catch (_) {}
+}
 const guestAvatarSvg = `data:image/svg+xml;utf8,${encodeURIComponent(
     "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='32' fill='%23E3E5E7'/><circle cx='32' cy='24' r='10' fill='%239499A0'/><path d='M12 54c4-10 16-14 20-14s16 4 20 14' fill='%239499A0'/></svg>"
 )}`;
@@ -757,6 +769,7 @@ if (path.endsWith("/posts.html") || path === "/posts.html") {
     if (postList) {
         (async function() {
             if (window.evwLangPromise) await window.evwLangPromise;
+            await loadFrontendConfig();
             await loadPostCategories();
             await loadPosts();
             loadPostRankings();

@@ -1,0 +1,1 @@
+go run ./admin/admin_server.go

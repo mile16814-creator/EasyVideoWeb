@@ -141,6 +141,12 @@ E:\boke\（项目根目录）
   "pagination": {
     "videos_per_page": 12,
     "posts_per_page": 10
+  },
+  "server": {
+    "main_listen_addr": ":8080",
+    "main_base_url": "http://localhost:8080",
+    "admin_listen_addr": ":8081",
+    "admin_base_url": "http://localhost:8081"
   }
 }
 ```
@@ -164,14 +170,20 @@ E:\boke\（项目根目录）
   - Linux/macOS：`bin/python`、`bin/pip`（需自行改配置）
 
 - **pagination.videos_per_page**  
-  首页视频列表每页条数配置项（当前前端未读取此值）。
+  首页视频列表每页条数配置项，前端会通过 `/api/app-config` 动态读取。
 
 - **pagination.posts_per_page**  
-  帖子列表每页条数配置项（当前前端未读取此值）。
+  帖子列表每页条数配置项，前端会通过 `/api/app-config` 动态读取。
+
+- **server.main_listen_addr** / **server.admin_listen_addr**  
+  主站与管理后台监听地址，默认分别为 `:8080`、`:8081`。
+
+- **server.main_base_url** / **server.admin_base_url**  
+  对外访问地址；后台复审/举报跳转链接会使用 `main_base_url` 生成。
 
 **未提供或字段缺失时**：  
 - venv 默认 `use_venv: true`，`venv_folder: "flash"`，Windows 路径。  
-- 分页当前由前端脚本默认值控制。
+- 分页与监听地址使用代码内默认值。
 
 ---
 
